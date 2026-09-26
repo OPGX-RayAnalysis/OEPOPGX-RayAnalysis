@@ -1,0 +1,11 @@
+# Core (no GPU needed): numbering, schema, anatomy rules, reports, tests
+numpy
+opencv-python
+pytest
+
+# Detection (tasks 1.7, 2.4, 2.6). Install PyTorch first with CUDA for your GPU:
+#   https://pytorch.org/get-started/locally/
+ultralytics
+
+# Demo app (task 3.9)
+gradio
