@@ -69,24 +69,28 @@ would really be 28. `train_yolo.py` turns flips off.
 
 ## Code map
 
-| Path | What | Plan task | Owner |
-|---|---|---|---|
-| `src/opg/fdi.py` | FDI ↔ Universal ↔ Palmer, tooth names | 2.9 | Faizan |
-| `src/opg/schema.py` | Findings JSON (the shared interface) | 1.5 | Kavya |
-| `src/opg/preprocess.py` | Crop, CLAHE, resize | 1.8, 2.1 | Shubh |
-| `src/opg/postprocess.py` | Anatomy rules: unique numbers, left/right, missing, wisdom teeth | 2.5 | Yash |
-| `src/opg/associate.py` | Link findings to teeth | 2.8 | Kavya |
-| `src/opg/pipeline.py` | Image → Findings JSON + annotated image | 2.8 | Kavya |
-| `src/opg/report.py` | Template dentist report + patient summary (the grounded baseline) | 3.3 | Kavya |
-| `src/opg/data/dentex.py` | DENTEX readers, YOLO writer, splits | 1.6, 2.2 | Krisha |
-| `scripts/` | Download, convert, train, analyze | — | — |
-| `tests/` | Pytest suite, run before every merge | — | everyone |
+| Path | What | Plan task |
+|---|---|---|
+| `src/opg/fdi.py` | FDI ↔ Universal ↔ Palmer, tooth names | 2.9 |
+| `src/opg/schema.py` | Findings JSON (the shared interface) | 1.5 |
+| `src/opg/preprocess.py` | Crop, CLAHE, resize | 1.8, 2.1 |
+| `src/opg/postprocess.py` | Anatomy rules: unique numbers, left/right, missing, wisdom teeth | 2.5 |
+| `src/opg/associate.py` | Link findings to teeth | 2.8 |
+| `src/opg/pipeline.py` | Image → Findings JSON + annotated image | 2.8 |
+| `src/opg/report.py` | Template dentist report + patient summary (the grounded baseline) | 3.3 |
+| `src/opg/data/dentex.py` | DENTEX readers, YOLO writer, splits | 1.6, 2.2 |
+| `scripts/` | Download, convert, train, analyze | — |
+| `tests/` | Pytest suite, run before every merge | — |
+
+The initial scaffold (every file above) was written by Kavya Desai. Later contributions are
+credited through the git history. Who works on each task is tracked in the team plan, not here.
 
 Still to come: `src/opg/history/` (task 3.5), `src/opg/agent/` (task 3.8) and `app.py` (Gradio, task 3.9).
 
 ## Rules
 
-- One branch per task (`2.4-tooth-detector`). Open a PR, and Kavya reviews before merging to `main`.
+- One branch per person and task (`yash/1.7-tooth-numbering`). Push small pieces often and open a
+  PR when one works; the PR is how you tell Kavya it's ready. Kavya reviews before merging to `main`.
 - `pytest` must pass before a merge. Add a test for anything with logic in it.
 - Changing `schema.py` needs sign-off, because every stage reads it.
 - Never commit patient images, datasets, weights or anything under `data/`.
