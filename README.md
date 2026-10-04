@@ -87,6 +87,8 @@ would really be 28. `train_yolo.py` turns flips off.
 | `src/opg/pipeline.py` | Image → Findings JSON + annotated image | 2.8 |
 | `src/opg/report.py` | Template dentist report + patient summary (the grounded baseline) | 3.3 |
 | `src/opg/data/dentex.py` | DENTEX readers, YOLO writer, splits | 1.6, 2.2 |
+| `src/opg/data/yolo.py` | Read any YOLO dataset (data.yaml, images, labels) | 1.11, 1.12 |
+| `scripts/view_labels.py` | Draw labels (and predictions) with tooth numbers, for spot-checks | 1.12 |
 | `scripts/` | Download, convert, train, analyze | — |
 | `tests/` | Pytest suite, run before every merge | — |
 
