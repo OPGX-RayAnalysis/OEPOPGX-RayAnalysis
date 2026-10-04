@@ -24,3 +24,6 @@ __pycache__/
 
 # Downloaded wheels (large, local only)
 .wheels/
+
+# AI context bundles (made by scripts/make_context.py)
+context_*.md
