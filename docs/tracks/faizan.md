@@ -14,7 +14,7 @@ Check that our tooth-number conversions are right, and find wrong labels in the 
   Put the chart's source (link or book) in a comment at the top.
 - A loop checks that `opg.fdi` gives the same answers both ways: `to_universal`,
   `from_universal`, `to_palmer`, `from_palmer`, and `describe` for the name.
-- If a test fails, tell Kavya. Don't change `fdi.py` yourself.
+- If a test fails, post it in the team WhatsApp group. Don't change `fdi.py` yourself.
 - Done: `pytest` passes (or the failures are reported), PR opened.
 
 ## 1.16 Label spot-check (no coding)

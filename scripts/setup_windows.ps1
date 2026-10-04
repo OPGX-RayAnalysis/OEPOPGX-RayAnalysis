@@ -46,8 +46,8 @@ if ($LASTEXITCODE -ne 0) { Fail "installing the project (pip install -e .) faile
 
 Write-Host "[4/4] Running the tests..." -ForegroundColor Cyan
 & $python -m pytest
-if ($LASTEXITCODE -ne 0) { Fail "some tests failed. Send a screenshot of this window to Kavya." }
+if ($LASTEXITCODE -ne 0) { Fail "some tests failed. Post a screenshot of this window in the team WhatsApp group." }
 
 Write-Host ""
-Write-Host "SETUP COMPLETE. Screenshot this window and send it to Kavya." -ForegroundColor Green
+Write-Host "SETUP COMPLETE. Screenshot this window and post it in the team WhatsApp group." -ForegroundColor Green
 Write-Host "Next time, start work with:  .venv\Scripts\activate"
