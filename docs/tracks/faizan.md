@@ -14,7 +14,7 @@ Check that our tooth-number conversions are right, and find wrong labels in the 
   Put the chart's source (link or book) in a comment at the top.
 - A loop checks that `opg.fdi` gives the same answers both ways: `to_universal`,
   `from_universal`, `to_palmer`, `from_palmer`, and `describe` for the name.
-- If a test fails, tell Kavya. Don't change `fdi.py` yourself.
+- If a test fails, post it in the team WhatsApp group. Don't change `fdi.py` yourself.
 - Done: `pytest` passes (or the failures are reported), PR opened.
 
 ## 1.16 Label spot-check (no coding)
@@ -35,6 +35,6 @@ Quadrant colours: 1 red, 2 green, 3 blue, 4 orange.
 ## Git in 5 steps
 1. `git checkout faizan`, then `git pull --no-edit origin main`
 2. Make your change, then run `pytest`
-3. `git add -A`, then `git status` (only your files listed)
+3. `git add tests/test_fdi_chart.py`, then `git status` (only your file listed)
 4. `git commit -m "1.15: FDI chart test"`, then `git push origin faizan`
 5. On GitHub: Pull requests → New pull request → base `main`, compare `faizan` → fill in the template → Create
