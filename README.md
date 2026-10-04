@@ -23,6 +23,14 @@ Everything after stage 4 reads the Findings JSON (`src/opg/schema.py`), never th
 
 Use Python 3.11–3.13. PyTorch doesn't support 3.14 yet.
 
+On Windows, one command does everything below (needs Python 3.13 installed):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\setup_windows.ps1
+```
+
+Or step by step:
+
 ```bash
 # Windows
 py -3.13 -m venv .venv
@@ -89,8 +97,11 @@ Still to come: `src/opg/history/` (task 3.5), `src/opg/agent/` (task 3.8) and `a
 
 ## Rules
 
-- One branch per person and task (`yash/1.7-tooth-numbering`). Push small pieces often and open a
-  PR when one works; the PR is how you tell Kavya it's ready. Kavya reviews before merging to `main`.
+- Everyone works on their own branch, named after them (`kavya`, `yash`, `shubh`, `krisha`,
+  `faizan`). `main` is protected, so changes reach it only through a reviewed pull request.
+- Before starting a task, run `git pull --no-edit origin main` on your branch. Open one PR per
+  task; the PR is how you tell Kavya it's ready. Wait for it to be merged before starting the
+  next task, so each PR holds one task.
 - `pytest` must pass before a merge. Add a test for anything with logic in it.
 - Changing `schema.py` needs sign-off, because every stage reads it.
 - Never commit patient images, datasets, weights or anything under `data/`.
