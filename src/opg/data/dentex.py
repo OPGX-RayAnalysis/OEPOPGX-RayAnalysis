@@ -19,6 +19,7 @@ from pathlib import Path
 
 from ..fdi import ALL_PERMANENT
 from ..geometry import xywh_to_xyxy
+from ..schema import DENTEX_LABELS
 
 DIAGNOSIS_MAP = {
     "Impacted": "impacted",
@@ -38,7 +39,7 @@ TURKISH_DIAGNOSIS_MAP = {
 }
 
 TEETH_CLASSES = [str(f) for f in ALL_PERMANENT]  # "11" ... "48", 32 classes
-FINDING_CLASSES = ["caries", "deep_caries", "periapical_lesion", "impacted"]
+FINDING_CLASSES = list(DENTEX_LABELS)  # YOLO class order for the findings dataset
 
 
 def load_coco_hierarchical(json_path: Path, images_dir: Path) -> list[dict]:

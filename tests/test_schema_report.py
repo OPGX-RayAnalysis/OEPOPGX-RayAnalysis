@@ -45,3 +45,36 @@ def test_patient_summary_is_plain_language():
     text = patient_summary(make_report())
     assert "upper left first molar" in text
     assert "deep cavity" in text
+
+
+def test_invalid_tooth_box_and_confidence_rejected():
+    from opg.schema import Tooth
+
+    with pytest.raises(ValueError):
+        Tooth(19, [0, 0, 1, 1], 0.9)  # no tooth 19
+    with pytest.raises(ValueError):
+        Tooth(11, [5, 0, 1, 1], 0.9)  # x1 > x2
+    with pytest.raises(ValueError):
+        Finding("caries", [0, 0, 1, 1], 1.5)
+    with pytest.raises(ValueError):
+        Finding("caries", [0, 0, 1, 1], 0.5, tooth_fdi=99)
+
+
+def test_minor_versions_load_major_versions_rejected():
+    d = make_report().to_dict()
+    del d["image"]["patient_id"], d["image"]["study_date"]  # a file written before these existed
+    d["schema_version"] = "1.7"
+    assert FindingsReport.from_dict(d).image.patient_id is None
+    d["schema_version"] = "2.0"
+    with pytest.raises(ValueError):
+        FindingsReport.from_dict(d)
+
+
+def test_label_groups_cover_every_label_once():
+    from opg.data.dentex import FINDING_CLASSES
+    from opg.report import DENTIST_TEXT, PATIENT_TEXT
+    from opg.schema import DENTEX_LABELS, DIAGNOSIS_LABELS, FINDING_LABELS, TREATMENT_LABELS
+
+    assert len(set(FINDING_LABELS)) == len(DIAGNOSIS_LABELS) + len(TREATMENT_LABELS)
+    assert set(DENTEX_LABELS) <= set(FINDING_LABELS) and FINDING_CLASSES == list(DENTEX_LABELS)
+    assert set(DENTIST_TEXT) == set(PATIENT_TEXT) == set(FINDING_LABELS)  # reports can say every label
