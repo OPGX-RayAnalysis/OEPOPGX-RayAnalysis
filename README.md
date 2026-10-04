@@ -40,7 +40,7 @@ python3.13 -m venv .venv && source .venv/bin/activate
 
 pip install numpy opencv-python pytest
 pip install -e .
-pytest            # smoke test, should print "39 passed"
+pytest            # smoke test: last line says "passed", no "failed"
 ```
 
 For training, install PyTorch with CUDA from https://pytorch.org/get-started/locally/, then run
@@ -90,6 +90,7 @@ would really be 28. `train_yolo.py` turns flips off.
 | `src/opg/data/yolo.py` | Read any YOLO dataset (data.yaml, images, labels) | 1.11, 1.12 |
 | `scripts/view_labels.py` | Draw labels (and predictions) with tooth numbers, for spot-checks | 1.12 |
 | `src/opg/scoring.py`, `scripts/score_numbering.py` | Numbering accuracy, per-tooth table, missing-tooth F1, mAP50 | 1.11 |
+| `docs/PROJECT_CONTEXT.md`, `docs/tracks/`, `scripts/make_context.py` | Shared rules, per-person briefs, AI context bundle | 1.13 |
 | `scripts/` | Download, convert, train, analyze | — |
 | `tests/` | Pytest suite, run before every merge | — |
 
@@ -101,7 +102,7 @@ Still to come: `src/opg/history/` (task 3.5), `src/opg/agent/` (task 3.8) and `a
 ## Rules
 
 - Everyone works on their own branch, named after them (`kavya`, `yash`, `shubh`, `krisha`,
-  `faizan`). `main` is protected, so changes reach it only through a reviewed pull request.
+  `faizan`). Changes reach `main` only through a pull request that Kavya reviews and merges.
 - Before starting a task, run `git pull --no-edit origin main` on your branch. Open one PR per
   task; the PR is how you tell Kavya it's ready. Wait for it to be merged before starting the
   next task, so each PR holds one task.
