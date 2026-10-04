@@ -13,6 +13,7 @@ silently corrupt FDI labels (18 would become 28).
 from __future__ import annotations
 
 import argparse
+from pathlib import Path
 
 
 def main() -> None:
@@ -31,7 +32,7 @@ def main() -> None:
     YOLO(args.model).train(
         data=args.data,
         name=args.name,
-        project="runs",
+        project=str(Path("runs").resolve()),  # absolute, or Ultralytics nests it under runs/detect/
         epochs=args.epochs,
         imgsz=args.imgsz,
         batch=args.batch,
