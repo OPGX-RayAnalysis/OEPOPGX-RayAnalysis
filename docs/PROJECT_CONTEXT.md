@@ -167,7 +167,8 @@ it. Tests must not need the real dataset, a GPU or the internet: build tiny fake
 
 1. Work only on your own branch: `git checkout <name>`.
 2. Before each task: `git pull --no-edit origin main`.
-3. Commit as you go: `git add -A`, `git status` (check no data, images, zips or weights),
+3. Commit as you go: `git add <your files>` (by name, never `git add .` or `-A`), `git status`
+   (check no data, images, zips or weights),
    `git commit -m "<task number>: <what changed>"`.
 4. `git push origin <name>`, then open a pull request on GitHub (base `main`, compare `<name>`)
    and fill in the template. The PR is how you tell Kavya it's ready.

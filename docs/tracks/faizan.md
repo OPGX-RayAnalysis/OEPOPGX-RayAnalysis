@@ -35,6 +35,6 @@ Quadrant colours: 1 red, 2 green, 3 blue, 4 orange.
 ## Git in 5 steps
 1. `git checkout faizan`, then `git pull --no-edit origin main`
 2. Make your change, then run `pytest`
-3. `git add -A`, then `git status` (only your files listed)
+3. `git add tests/test_fdi_chart.py`, then `git status` (only your file listed)
 4. `git commit -m "1.15: FDI chart test"`, then `git push origin faizan`
 5. On GitHub: Pull requests → New pull request → base `main`, compare `faizan` → fill in the template → Create
