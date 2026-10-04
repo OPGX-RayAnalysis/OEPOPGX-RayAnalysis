@@ -1,7 +1,10 @@
 """Convert downloaded DENTEX data into two YOLO datasets (plan task 1.6).
 
     data/yolo/teeth     32 FDI classes, from the enumeration subset (all teeth labelled)
-                        split 85% train / 15% val
+                        split 70% train / 15% val / 15% test (test = numbering test set,
+                        never trained on; the official DENTEX test set only labels diseased teeth).
+                        Images with a tooth number labelled twice are left out after the split
+                        (16 images; listed in docs/datasets/dentex.md and excluded_teeth.txt)
     data/yolo/findings  4 diagnosis classes, from the disease subset (abnormal teeth only)
                         split 90% train / 10% val, plus the official 250-image test set
 
@@ -46,8 +49,14 @@ def main() -> None:
 
     if enum_dir.exists():
         records = D.load_coco_hierarchical(enum_dir / "train_quadrant_enumeration.json", enum_dir / "xrays")
-        splits = D.split_records(records, {"train": 0.85, "val": 0.15}, args.seed)
+        splits = D.split_records(records, {"train": 0.70, "val": 0.15, "test": 0.15}, args.seed)
+        # Drop after splitting, so every other image keeps the split it had.
+        excluded = [(name, r) for name, rs in splits.items() for r in rs if D.repeated_numbers(r)]
+        splits = {name: [r for r in rs if not D.repeated_numbers(r)] for name, rs in splits.items()}
         path = D.write_yolo(splits, args.out / "teeth", D.TEETH_CLASSES, "fdi")
+        lines = [f"{name}\t{r['file']}\trepeated: {' '.join(map(str, D.repeated_numbers(r)))}\n" for name, r in excluded]
+        (args.out / "teeth" / "excluded_teeth.txt").write_text("".join(lines), encoding="utf-8")
+        print(f"teeth:    left out {len(excluded)} images with a repeated tooth number (see excluded_teeth.txt)")
         print(f"teeth:    {', '.join(f'{k}={len(v)}' for k, v in splits.items())} -> {path}")
     else:
         print(f"skip teeth: {enum_dir} not found")

@@ -102,6 +102,16 @@ def load_labelme_test(label_dir: Path, images_dir: Path, strict: bool = True) ->
     return records
 
 
+def repeated_numbers(record: dict) -> list[int]:
+    """FDI numbers labelled more than once in one image. A person has each tooth once, so any
+    repeat is a labelling mistake (e.g. a whole quadrant given the wrong number)."""
+    seen: dict[int, int] = {}
+    for box in record["boxes"]:
+        if box["fdi"] is not None:
+            seen[box["fdi"]] = seen.get(box["fdi"], 0) + 1
+    return sorted(fdi for fdi, count in seen.items() if count > 1)
+
+
 def split_records(records: list[dict], fractions: dict[str, float], seed: int = 42) -> dict[str, list[dict]]:
     """Random image-level split. DENTEX has no patient ids, so image level is the best we can do."""
     shuffled = sorted(records, key=lambda r: r["file"])
@@ -142,8 +152,9 @@ def write_yolo(splits: dict[str, list[dict]], out_dir: Path, classes: list[str],
             (out_dir / "labels" / split / (Path(r["file"]).stem + ".txt")).write_text("\n".join(lines), encoding="utf-8")
             manifest.append({**r, "path": str(r["path"])})
         (out_dir / f"annotations_{split}.json").write_text(json.dumps(manifest, indent=1), encoding="utf-8")
-    yaml_lines = [f"path: {out_dir.resolve().as_posix()}"]
-    yaml_lines += [f"{split}: images/{split}" for split in splits]
+    # No "path:" line: Ultralytics then resolves splits from the yaml's own folder, so the
+    # dataset works wherever it is unzipped (task 1.6).
+    yaml_lines = [f"{split}: images/{split}" for split in splits]
     yaml_lines += ["names:"] + [f"  {i}: '{c}'" for i, c in enumerate(classes)]
     data_yaml = out_dir / "data.yaml"
     data_yaml.write_text("\n".join(yaml_lines) + "\n", encoding="utf-8")
