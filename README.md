@@ -57,7 +57,7 @@ python scripts/dentex_to_yolo.py           # -> data/yolo/teeth and data/yolo/fi
 
 | Dataset made | Source | Classes | Splits |
 |---|---|---|---|
-| `data/yolo/teeth` | DENTEX quadrant-enumeration (634 imgs, all teeth labelled) | 32 FDI numbers | 85/15 train/val |
+| `data/yolo/teeth` | DENTEX quadrant-enumeration (634 imgs, all teeth labelled) | 32 FDI numbers | 70/15/15 train/val/test, minus 16 mislabelled images (`docs/datasets/dentex.md`) |
 | `data/yolo/findings` | DENTEX quadrant-enumeration-disease (705 imgs, abnormal teeth only) | caries, deep caries, periapical lesion, impacted | 90/10 train/val + official 250-image test |
 
 DENTEX is CC BY-NC-SA 4.0: non-commercial use only, and cite both DENTEX papers.

@@ -40,3 +40,25 @@ def test_split_is_deterministic_and_complete():
 
 def test_teeth_classes():
     assert len(D.TEETH_CLASSES) == 32 and D.TEETH_CLASSES[0] == "11" and D.TEETH_CLASSES[-1] == "48"
+
+
+def test_three_way_split_matches_dentex_counts():
+    records = [{"file": f"{i}.png"} for i in range(634)]
+    splits = D.split_records(records, {"train": 0.70, "val": 0.15, "test": 0.15}, seed=42)
+    files = [r["file"] for s in splits.values() for r in s]
+    assert {k: len(v) for k, v in splits.items()} == {"train": 444, "val": 95, "test": 95}
+    assert sorted(files) == sorted(r["file"] for r in records)  # no overlap, nothing lost
+
+
+def test_data_yaml_is_portable(tmp_path):
+    record = {"file": "a.png", "path": tmp_path / "a.png", "width": 10, "height": 10, "boxes": []}
+    record["path"].write_bytes(b"")
+    yaml_text = D.write_yolo({"train": [record], "test": [record]}, tmp_path / "out", D.TEETH_CLASSES, "fdi").read_text()
+    assert "path:" not in yaml_text  # Ultralytics then uses the yaml's own folder
+    assert "train: images/train" in yaml_text and "test: images/test" in yaml_text
+
+
+def test_repeated_numbers_flags_double_labels():
+    record = {"boxes": [{"fdi": 11}, {"fdi": 11}, {"fdi": 12}, {"fdi": None}, {"fdi": None}]}
+    assert D.repeated_numbers(record) == [11]
+    assert D.repeated_numbers({"boxes": [{"fdi": 11}, {"fdi": 21}]}) == []
