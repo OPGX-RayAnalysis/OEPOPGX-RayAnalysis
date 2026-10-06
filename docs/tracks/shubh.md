@@ -1,6 +1,6 @@
 # Track: Shubh (does cleaning the image help numbering?)
 
-**Task:** 1.8. After 17 Oct: 2.1 (resize, masking burned-in text), then the findings detector (2.6).
+**Task:** 1.8 (done, merged 6 Oct 2026: CLAHE gives no gain). After 17 Oct: 2.1 (resize, masking burned-in text), then the findings detector (2.6).
 
 ## Goal
 Make the X-rays clearer (crop, CLAHE), then prove whether that helps the model number teeth.

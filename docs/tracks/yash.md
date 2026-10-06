@@ -13,7 +13,8 @@ mostly experiments, not new code.
 ## Inputs
 - `dentex_yolo_v1.zip` from Drive `data/`, extracted inside `opg-ai` → `data/yolo/teeth/`
 - `scripts/train_yolo.py`, `scripts/score_numbering.py`, `scripts/view_labels.py`
-- Shubh's one-line answer on whether CLAHE preprocessing helps (you don't need it to start)
+- Shubh's answer (1.8): CLAHE gives no gain, so train on the plain images. His yolo11n, 50-epoch
+  plain run scored 90.9% numbering accuracy on the test split; v1 (yolo11s, 100 epochs) should beat it.
 
 ## Outputs
 - Drive `weights/yash-teeth-v1/`: `best.pt`, `results.csv`, `args.yaml`, `score.json`
