@@ -81,7 +81,7 @@ would really be 28. `train_yolo.py` turns flips off.
 |---|---|---|
 | `src/opg/fdi.py` | FDI ↔ Universal ↔ Palmer, tooth names | 2.9 |
 | `src/opg/schema.py`, `docs/findings_json.md` | Findings JSON (the shared interface) | 1.5 |
-| `src/opg/preprocess.py` | Crop, CLAHE, resize | 1.8, 2.1 |
+| `src/opg/preprocess.py`, `scripts/preprocess_dataset.py` | Crop, CLAHE, resize; crop + CLAHE dataset copy with shifted boxes | 1.8, 2.1 |
 | `src/opg/postprocess.py` | Anatomy rules: unique numbers, left/right, missing, wisdom teeth | 2.5 |
 | `src/opg/associate.py` | Link findings to teeth | 2.8 |
 | `src/opg/pipeline.py` | Image → Findings JSON + annotated image | 2.8 |
