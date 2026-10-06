@@ -1,6 +1,6 @@
 # Project context: OPG X-Ray AI
 
-Version 1.0 · 4 Oct 2026 · Owner: Kavya (team lead)
+Version 1.1 · 6 Oct 2026 · Owner: Kavya (team lead)
 
 This file is the shared ground for everyone on the team and for the AI tools we use. Upload it
 (as part of your `context_<name>.md` bundle) before asking an AI for code, so its answers fit
@@ -31,6 +31,10 @@ Everything after stage 4 reads the Findings JSON (`src/opg/schema.py`), never th
 
 **Phase 1 goal (now):** a model that numbers teeth accurately, measured on a held-out test set.
 The first presentation is on 17 Oct 2026 and needs a first baseline, not a finished model.
+
+**Results so far:** cropping plus CLAHE does not help numbering (task 1.8: 90.9% numbering
+accuracy with and without, yolo11n, 50 epochs, test split). **Train numbering models on the
+plain images** (`data/yolo/teeth/`). Details: `experiments/shubh/RESULTS.md`.
 
 ## 2. Team
 
@@ -78,7 +82,7 @@ opg-ai/
   src/opg/            the package (import as `opg`)
     fdi.py            FDI ↔ Universal ↔ Palmer, tooth names
     schema.py         Findings JSON (the shared interface)
-    preprocess.py     crop, CLAHE, resize
+    preprocess.py     crop, CLAHE, resize, shift YOLO boxes after a crop
     postprocess.py    anatomy rules: unique numbers, left/right, missing, wisdom teeth
     scoring.py        numbering metrics (used by score_numbering.py)
     associate.py      link findings to teeth
@@ -105,6 +109,7 @@ python scripts/view_labels.py --data data/yolo/teeth/data.yaml --split train --n
 python scripts/view_labels.py --data data/yolo/teeth/data.yaml --split test --pred best.pt --out mistakes/
 python scripts/train_yolo.py --data data/yolo/teeth/data.yaml --name <person>-teeth-v1
 python scripts/score_numbering.py --weights runs/<name>/weights/best.pt --data data/yolo/teeth/data.yaml --split test [--rules]
+python scripts/preprocess_dataset.py --data data/yolo/teeth/data.yaml --out data/yolo/teeth_clahe [--preview 5]
 ```
 
 - `view_labels.py` draws boxes with tooth numbers, coloured by quadrant (`--system universal|palmer`
@@ -113,6 +118,8 @@ python scripts/score_numbering.py --weights runs/<name>/weights/best.pt --data d
   accuracy** = teeth found with the right number ÷ all real teeth (a match needs box overlap
   IoU ≥ 0.5). It also gives a 32-row per-tooth table, missing-tooth F1 and mAP50, and writes
   `score.json` and `score.csv` into the run folder. `--rules` applies the anatomy rules first.
+- `preprocess_dataset.py` writes a crop + CLAHE copy of a YOLO dataset with the boxes shifted to
+  match the crop (`--preview N` saves before/after images). Not needed for numbering (see above).
 
 ## 7. Findings JSON contract
 
