@@ -1,6 +1,6 @@
 # Project context: OPG X-Ray AI
 
-Version 1.1 · 6 Oct 2026 · Owner: Kavya (team lead)
+Version 1.2 · 7 Oct 2026 · Owner: Kavya (team lead)
 
 This file is the shared ground for everyone on the team and for the AI tools we use. Upload it
 (as part of your `context_<name>.md` bundle) before asking an AI for code, so its answers fit
@@ -35,6 +35,9 @@ The first presentation is on 17 Oct 2026 and needs a first baseline, not a finis
 **Results so far:** cropping plus CLAHE does not help numbering (task 1.8: 90.9% numbering
 accuracy with and without, yolo11n, 50 epochs, test split). **Train numbering models on the
 plain images** (`data/yolo/teeth/`). Details: `experiments/shubh/RESULTS.md`.
+v1 numbering model (task 1.7): yolo11s, 100 epochs (early stop at 69), **94.4%** numbering accuracy
+on the test split (2,533 of 2,682 teeth); with anatomy rules on: 94.3%.
+This is the number to beat in 2.4. Details: `experiments/yash/EXPERIMENTS.md`.
 
 ## 2. Team
 
