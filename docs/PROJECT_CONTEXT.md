@@ -1,6 +1,8 @@
 # Project context: OPG X-Ray AI
 
-Version 1.1 · 6 Oct 2026 · Owner: Kavya (team lead)
+
+Version 1.3 · 7 Oct 2026 · Owner: Kavya (team lead)
+
 
 This file is the shared ground for everyone on the team and for the AI tools we use. Upload it
 (as part of your `context_<name>.md` bundle) before asking an AI for code, so its answers fit
@@ -35,6 +37,12 @@ The first presentation is on 17 Oct 2026 and needs a first baseline, not a finis
 **Results so far:** cropping plus CLAHE does not help numbering (task 1.8: 90.9% numbering
 accuracy with and without, yolo11n, 50 epochs, test split). **Train numbering models on the
 plain images** (`data/yolo/teeth/`). Details: `experiments/shubh/RESULTS.md`.
+<<<<<<< HEAD
+=======
+v1 numbering model (task 1.7): yolo11s, 100 epochs (early stop at 69), **94.4%** numbering accuracy
+on the test split (2,533 of 2,682 teeth); with anatomy rules on: 94.3%.
+This is the number to beat in 2.4. Details: `experiments/yash/EXPERIMENTS.md`.
+>>>>>>> origin/main
 
 ## 2. Team
 
@@ -60,8 +68,15 @@ Task numbers (like 1.11) refer to the team plan and tracker.
   Each label line is `class cx cy w h` (normalised 0–1). Class index → FDI number via the
   `names` list in `data.yaml` (index 0 = tooth 11, index 31 = tooth 48).
 - `data.yaml` has no `path:` line on purpose, so it works wherever the folder is.
-- **Tufts Dental Database** (Krisha) is a second, external test set. It uses Universal numbers
-  (1–32), which must be converted to FDI with `opg.fdi.from_universal`.
+- **Tufts Dental Database** (Krisha, task 1.14) is a second, external test set: 1,000 OPGs from
+  a different source (Tufts, USA), 32 FDI classes in the DENTEX order, one `test` split
+  (`data/yolo/tufts_test/`, built by `scripts/tufts_to_yolo.py`). Tufts uses Universal numbers,
+  converted with `opg.fdi.from_universal`. **Test only: never train or tune on it.**
+  82 images are children with unlabelled baby teeth, so report numbering accuracy on all 1,000
+  and on the 918 without them; 32 images have no teeth (empty labels). Details: `docs/datasets/tufts.md`.
+- **The Tufts licence forbids sharing the data**, even inside the team: no Tufts zip on Drive,
+  no Tufts X-rays on WhatsApp, Drive or GitHub. To score a model on Tufts, put its `best.pt`
+  on Drive and Krisha scores it and shares `score.json`/`score.csv` (numbers are fine to share).
 
 ## 4. Tooth numbering (read this before touching any numbering code)
 
@@ -188,6 +203,7 @@ it. Tests must not need the real dataset, a GPU or the internet: build tiny fake
 - Don't commit datasets, images, zips, model weights or anything under `data/` or `runs/`.
   They go on the team Drive.
 - Don't use real patient X-rays from anywhere outside the public datasets.
+- Don't share Tufts images or data with anyone (licence); share only scores.
 - Don't train on, tune on or look closely at the DENTEX **test** split; it is for scoring only.
 - Don't change `schema.py`, `fdi.py` or another person's files without asking Kavya.
   If a shared file seems wrong, report it.

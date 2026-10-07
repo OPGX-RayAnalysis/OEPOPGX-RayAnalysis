@@ -16,6 +16,9 @@ mostly experiments, not new code.
 - Shubh's answer (1.8): CLAHE gives no gain, so train on the plain images. His yolo11n, 50-epoch
   plain run scored 90.9% numbering accuracy on the test split; v1 (yolo11s, 100 epochs) should beat it.
 
+- 1.7 done (7 Oct): v1 scored 94.4% (rules off). For 2.4, beat 94.4%; pick settings on val, report on test.
+
+
 ## Outputs
 - Drive `weights/yash-teeth-v1/`: `best.pt`, `results.csv`, `args.yaml`, `score.json`
 - Drive `results/yash/`: 4 result images for the slides (from `view_labels.py --pred`)
