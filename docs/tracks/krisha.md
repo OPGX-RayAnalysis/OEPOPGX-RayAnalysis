@@ -2,6 +2,10 @@
 
 **Task:** 1.14. Also: Related Literature slides (1.4, with Yash). After 17 Oct: 2.2.
 
+**Status (7 Oct 2026):** 1.14 done and merged (PR #10). The Tufts terms forbid sharing, so there
+is no Drive zip; you score teammates' models on Tufts (their `best.pt` from Drive) and post
+`score.json`/`score.csv` (all 1,000 images and the 918 without baby teeth).
+
 ## Goal
 Check that the model works on OPGs that aren't from DENTEX, using the Tufts Dental Database
 (~1,000 OPGs with tooth numbers).
