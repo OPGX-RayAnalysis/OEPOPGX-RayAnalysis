@@ -1,6 +1,6 @@
 # Project context: OPG X-Ray AI
 
-Version 1.3 · 7 Oct 2026 · Owner: Kavya (team lead)
+Version 1.4 · 8 Oct 2026 · Owner: Kavya (team lead)
 
 This file is the shared ground for everyone on the team and for the AI tools we use. Upload it
 (as part of your `context_<name>.md` bundle) before asking an AI for code, so its answers fit
@@ -70,7 +70,8 @@ Task numbers (like 1.11) refer to the team plan and tracker.
   82 images are children with unlabelled baby teeth, so report numbering accuracy on all 1,000
   and on the 918 without them; 32 images have no teeth (empty labels). Details: `docs/datasets/tufts.md`.
 - **The Tufts licence forbids sharing the data**, even inside the team: no Tufts zip on Drive,
-  no Tufts X-rays on WhatsApp, Drive or GitHub. To score a model on Tufts, put its `best.pt`
+  no Tufts X-rays on WhatsApp, Drive or GitHub, and none uploaded to any AI tool (ChatGPT,
+  Gemini, Claude, etc.). To score a model on Tufts, put its `best.pt`
   on Drive and Krisha scores it and shares `score.json`/`score.csv` (numbers are fine to share).
 
 ## 4. Tooth numbering (read this before touching any numbering code)
@@ -198,7 +199,8 @@ it. Tests must not need the real dataset, a GPU or the internet: build tiny fake
 - Don't commit datasets, images, zips, model weights or anything under `data/` or `runs/`.
   They go on the team Drive.
 - Don't use real patient X-rays from anywhere outside the public datasets.
-- Don't share Tufts images or data with anyone (licence); share only scores.
+- Don't share Tufts images or data with anyone, or upload them to any AI tool (licence);
+  share only scores.
 - Don't train on, tune on or look closely at the DENTEX **test** split; it is for scoring only.
 - Don't change `schema.py`, `fdi.py` or another person's files without asking Kavya.
   If a shared file seems wrong, report it.

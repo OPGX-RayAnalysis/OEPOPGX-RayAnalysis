@@ -98,6 +98,6 @@ Anyone who needs the set (e.g. to score a model on it) requests access at http:/
 with their own college email, puts the download in `data/raw/tufts/`, and runs
 `python scripts/tufts_to_yolo.py`. The conversion is deterministic, so everyone gets the same set.
 
-Also keep Tufts images (including `view_labels.py` check images) off WhatsApp, Drive and GitHub.
+Also keep Tufts images (including `view_labels.py` check images) off WhatsApp, Drive, GitHub and AI tools (ChatGPT, Gemini, Claude, etc.).
 Showing them in the class presentation is not clearly covered by "research papers or research
 conferences": ask the supervisor before putting a Tufts X-ray on a slide. Scores and tables are fine.
