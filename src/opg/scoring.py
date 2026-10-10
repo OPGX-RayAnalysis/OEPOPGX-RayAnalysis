@@ -13,10 +13,17 @@ the number. Then, over all real teeth:
                          a little above what Ultralytics prints (its 101-point method gave
                          30.0% where this gave 32.2% on the 5-epoch smoke model); compare
                          mAP50 only between runs scored by this script
+
+The Scorer also keeps one row of counts per image (Scorer.images). From those rows,
+summarize() recomputes the first four numbers on any subset of images, bootstrap_ci() gives
+a 95% confidence interval by resampling images (task 2.13), and paired_difference_ci() says
+whether two models really differ on the same images. mAP50 has no interval: it needs every
+raw prediction, and recomputing it 1,000 times is too slow.
 """
 
 from __future__ import annotations
 
+import random
 from collections import defaultdict
 from dataclasses import dataclass, field
 
@@ -74,30 +81,40 @@ class Scorer:
     per_tooth: dict = field(default_factory=lambda: defaultdict(lambda: {"count": 0, "detected": 0, "correct": 0}))
     missing: dict = field(default_factory=lambda: {"tp": 0, "fp": 0, "fn": 0})
     ap_hits: dict = field(default_factory=lambda: defaultdict(list))
+    images: list = field(default_factory=list)  # one row of counts per image, see IMAGE_FIELDS
     n_images: int = 0
 
-    def add(self, truth: list[Tooth], pred: list[Tooth], pred_all: list[Tooth] | None = None) -> None:
+    def add(self, truth: list[Tooth], pred: list[Tooth], pred_all: list[Tooth] | None = None, name: str = "") -> None:
         """pred: the predictions being scored. pred_all: low-threshold raw predictions for mAP
-        (defaults to pred)."""
+        (defaults to pred). name: the image file name, kept in the per-image row."""
         self.n_images += 1
+        image = {"image": name or str(self.n_images), "teeth": len(truth), "detected": 0, "correct": 0}
         pairs = dict(match(truth, pred, self.iou_threshold))
         for i, t in enumerate(truth):
             row = self.per_tooth[t.fdi]
             row["count"] += 1
             if i in pairs:
+                ok = pred[pairs[i]].fdi == t.fdi
                 row["detected"] += 1
-                row["correct"] += pred[pairs[i]].fdi == t.fdi
+                row["correct"] += ok
+                image["detected"] += 1
+                image["correct"] += ok
 
         truth_present = {t.fdi for t in truth}
         pred_present = {p.fdi for p in pred}
+        missing = {"tp": 0, "fp": 0, "fn": 0}
         for tooth in F.ALL_PERMANENT:
             truly_missing, said_missing = tooth not in truth_present, tooth not in pred_present
             if truly_missing and said_missing:
-                self.missing["tp"] += 1
+                missing["tp"] += 1
             elif said_missing:
-                self.missing["fp"] += 1
+                missing["fp"] += 1
             elif truly_missing:
-                self.missing["fn"] += 1
+                missing["fn"] += 1
+        for k, v in missing.items():
+            self.missing[k] += v
+            image[f"missing_{k}"] = v
+        self.images.append(image)
 
         self._add_ap(truth, pred if pred_all is None else pred_all)
 
@@ -146,3 +163,63 @@ class Scorer:
 
 def _ratio(a: float, b: float) -> float | None:
     return a / b if b else None
+
+
+IMAGE_FIELDS = ["image", "teeth", "detected", "correct", "missing_tp", "missing_fp", "missing_fn"]
+CI_METRICS = ["numbering_accuracy", "accuracy_if_found", "detection_rate", "missing_tooth_f1"]
+
+
+def summarize(images: list[dict]) -> dict:
+    """The four per-image-additive metrics (CI_METRICS) from per-image rows."""
+    total = {k: sum(r[k] for r in images) for k in IMAGE_FIELDS[1:]}
+    tp, fp, fn = total["missing_tp"], total["missing_fp"], total["missing_fn"]
+    return {
+        "images": len(images),
+        "teeth": total["teeth"],
+        "numbering_accuracy": _ratio(total["correct"], total["teeth"]),
+        "accuracy_if_found": _ratio(total["correct"], total["detected"]),
+        "detection_rate": _ratio(total["detected"], total["teeth"]),
+        "missing_tooth_f1": _ratio(2 * tp, 2 * tp + fp + fn),
+    }
+
+
+def _percentiles(values: list[float], level: float) -> list[float] | None:
+    values = sorted(v for v in values if v is not None)
+    if not values:
+        return None
+    tail = (1 - level) / 2
+    lo = values[int(tail * (len(values) - 1))]
+    hi = values[int(round((1 - tail) * (len(values) - 1)))]
+    return [lo, hi]
+
+
+def bootstrap_ci(images: list[dict], n: int = 1000, level: float = 0.95, seed: int = 0) -> dict:
+    """Percentile bootstrap over images: draw len(images) images with replacement, n times,
+    recompute each metric, take the middle `level` of the results. {metric: [low, high]}."""
+    rng = random.Random(seed)
+    draws = [summarize(rng.choices(images, k=len(images))) for _ in range(n)]
+    return {m: _percentiles([d[m] for d in draws], level) for m in CI_METRICS}
+
+
+def paired_difference_ci(
+    a: list[dict], b: list[dict], n: int = 1000, level: float = 0.95, seed: int = 0
+) -> dict:
+    """B minus A on the images both were scored on, resampling the same images for both.
+    {metric: {"diff": observed, "ci": [low, high]}}. If the interval contains 0, the two
+    models are not shown to differ."""
+    a_by, b_by = {r["image"]: r for r in a}, {r["image"]: r for r in b}
+    names = sorted(a_by.keys() & b_by.keys())
+    if not names:
+        raise ValueError("the two runs share no image names")
+
+    def diff(sample: list[str]) -> dict:
+        sa, sb = summarize([a_by[x] for x in sample]), summarize([b_by[x] for x in sample])
+        return {m: None if sa[m] is None or sb[m] is None else sb[m] - sa[m] for m in CI_METRICS}
+
+    rng = random.Random(seed)
+    observed = diff(names)
+    draws = [diff(rng.choices(names, k=len(names))) for _ in range(n)]
+    return {
+        "images": len(names),
+        **{m: {"diff": observed[m], "ci": _percentiles([d[m] for d in draws], level)} for m in CI_METRICS},
+    }

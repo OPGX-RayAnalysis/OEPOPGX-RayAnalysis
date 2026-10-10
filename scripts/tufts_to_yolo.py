@@ -2,6 +2,8 @@
 
     data/yolo/tufts_test   32 FDI classes (same order as DENTEX), one split: test.
                            External test set: never train or tune on it.
+                           mixed_dentition.txt lists the images with primary teeth, for
+                           score_numbering.py --skip (report all 1,000 and the rest).
 
 Usage:
     python scripts/tufts_to_yolo.py --raw data/raw/tufts --out data/yolo/tufts_test
@@ -38,11 +40,13 @@ def main() -> None:
 
     teeth = [b["fdi"] for r in records for b in r["boxes"]]
     primary = sum(F.is_primary(f) for f in teeth)
-    mixed = sum(any(F.is_primary(b["fdi"]) for b in r["boxes"]) for r in records)
+    mixed = [r["file"] for r in records if any(F.is_primary(b["fdi"]) for b in r["boxes"])]
+    (args.out / "mixed_dentition.txt").write_text("\n".join(mixed) + "\n", encoding="utf-8")
     repeated = [r for r in records if D.repeated_numbers(r)]
     print(f"tufts: {len(records)} images, {len(teeth) - primary} permanent teeth -> {path}")
     print(f"tufts: {sum(not r['boxes'] for r in records)} images with no teeth (edentulous; empty label files)")
-    print(f"tufts: {primary} primary teeth in {mixed} images left out (no class for them; DENTEX is adults only)")
+    print(f"tufts: {primary} primary teeth in {len(mixed)} images left out (no class for them; DENTEX is adults only)")
+    print(f"tufts: those {len(mixed)} images are listed in {args.out / 'mixed_dentition.txt'}")
     print(f"tufts: {len(repeated)} images repeat a tooth number (labelling mistakes):")
     for r in repeated:
         print(f"    {r['file']}\trepeated: {' '.join(map(str, D.repeated_numbers(r)))}")

@@ -6,10 +6,14 @@ dataset, Krisha's Tufts set. See src/opg/scoring.py for exactly what each number
 Usage:
     python scripts/score_numbering.py --weights runs/teeth-v1/weights/best.pt --data data/yolo/teeth/data.yaml --split test
     python scripts/score_numbering.py --weights best.pt --data data/yolo/teeth/data.yaml --split test --rules
+    python scripts/score_numbering.py --weights best.pt --data data/yolo/tufts_test/data.yaml --skip data/yolo/tufts_test/mixed_dentition.txt
 
 --rules applies the anatomy rules (postprocess.apply_anatomy_rules) to the predictions first.
-Writes score.json and score.csv (score_rules.* with --rules) next to the weights' run folder,
-or into --out.
+--skip leaves out the images named in a text file (one file name per line).
+Writes, next to the weights' run folder or into --out (score_rules.* with --rules):
+    score.json          all numbers, plus a 95% bootstrap interval for the first four (ci95)
+    score.csv           per tooth
+    score_images.csv    per image, for scripts/compare_scores.py (seeds, A vs B, subsets)
 """
 
 from __future__ import annotations
@@ -23,7 +27,7 @@ import cv2
 
 from opg.data import yolo as Y
 from opg.postprocess import RawTooth, apply_anatomy_rules
-from opg.scoring import Scorer, Tooth
+from opg.scoring import IMAGE_FIELDS, Scorer, Tooth, bootstrap_ci
 
 MAP_CONF = 0.001  # mAP needs (almost) every prediction, accuracy uses --conf
 
@@ -53,6 +57,8 @@ def main() -> None:
     parser.add_argument("--imgsz", type=int, default=1024)
     parser.add_argument("--device", default=None, help="e.g. 0 for the first GPU, cpu for CPU")
     parser.add_argument("--out", type=Path, default=None)
+    parser.add_argument("--skip", type=Path, default=None, help="text file of image names to leave out")
+    parser.add_argument("--bootstrap", type=int, default=1000, help="resamples for the 95%% interval, 0 = none")
     args = parser.parse_args()
 
     try:
@@ -64,6 +70,10 @@ def main() -> None:
     images = Y.split_images(data, args.split)
     if not images:
         raise SystemExit(f"No images in split '{args.split}'.")
+    if args.skip:
+        skip = {Path(line.strip()).stem.lower() for line in args.skip.read_text(encoding="utf-8").splitlines() if line.strip()}
+        images = [p for p in images if p.stem.lower() not in skip]
+        print(f"Skipping {len(skip)} images listed in {args.skip}: {len(images)} left")
     model = YOLO(str(args.weights))
 
     scorer = Scorer(iou_threshold=args.iou)
@@ -76,7 +86,7 @@ def main() -> None:
         if args.rules:
             fixed = apply_anatomy_rules([RawTooth(p.fdi, p.bbox, p.conf) for p in pred])
             pred = [Tooth(t.fdi, t.bbox, t.confidence) for t in fixed]
-        scorer.add(truth, pred, pred_all)
+        scorer.add(truth, pred, pred_all, name=path.name)
         if i % 10 == 0 or i == len(images):
             print(f"  {i}/{len(images)}", flush=True)
 
@@ -88,8 +98,12 @@ def main() -> None:
         "conf": args.conf,
         "iou": args.iou,
         "imgsz": args.imgsz,
+        "skip": str(args.skip) if args.skip else None,
         **scorer.result(),
     }
+    if args.bootstrap:
+        score["ci95"] = bootstrap_ci(scorer.images, n=args.bootstrap)
+        score["bootstrap_resamples"] = args.bootstrap
     out = args.out or default_out(args.weights)
     out.mkdir(parents=True, exist_ok=True)
     stem = "score_rules" if args.rules else "score"
@@ -98,19 +112,27 @@ def main() -> None:
         writer = csv.DictWriter(f, fieldnames=["fdi", "count", "detected", "correct", "accuracy"])
         writer.writeheader()
         writer.writerows(score["per_tooth"])
+    with open(out / f"{stem}_images.csv", "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=IMAGE_FIELDS)
+        writer.writeheader()
+        writer.writerows(scorer.images)
 
     def pct(v):
         return "n/a" if v is None else f"{100 * v:.1f}%"
 
+    def ci(metric):
+        bounds = score.get("ci95", {}).get(metric)
+        return f"   95% CI {pct(bounds[0])} to {pct(bounds[1])}" if bounds else ""
+
     print(f"\n{args.split}: {score['images']} images, {score['teeth']} teeth, rules {'on' if args.rules else 'off'}")
-    print(f"  numbering accuracy  {pct(score['numbering_accuracy'])}   (right number / all teeth)")
-    print(f"  accuracy if found   {pct(score['accuracy_if_found'])}")
-    print(f"  detection rate      {pct(score['detection_rate'])}")
-    print(f"  missing-tooth F1    {pct(score['missing_tooth_f1'])}")
+    print(f"  numbering accuracy  {pct(score['numbering_accuracy'])}{ci('numbering_accuracy')}   (right number / all teeth)")
+    print(f"  accuracy if found   {pct(score['accuracy_if_found'])}{ci('accuracy_if_found')}")
+    print(f"  detection rate      {pct(score['detection_rate'])}{ci('detection_rate')}")
+    print(f"  missing-tooth F1    {pct(score['missing_tooth_f1'])}{ci('missing_tooth_f1')}")
     print(f"  mAP50 (raw model)   {pct(score['map50'])}")
     worst = sorted((r for r in score["per_tooth"] if r["count"]), key=lambda r: r["accuracy"])[:5]
     print("  weakest teeth       " + ", ".join(f"{r['fdi']} {pct(r['accuracy'])}" for r in worst))
-    print(f"Saved {out / stem}.json and .csv")
+    print(f"Saved {out / stem}.json, {stem}.csv and {stem}_images.csv")
 
 
 if __name__ == "__main__":
