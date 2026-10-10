@@ -1,6 +1,6 @@
 # Project context: OPG X-Ray AI
 
-Version 1.4 · 8 Oct 2026 · Owner: Kavya (team lead)
+Version 1.5 · 10 Oct 2026 · Owner: Kavya (team lead)
 
 This file is the shared ground for everyone on the team and for the AI tools we use. Upload it
 (as part of your `context_<name>.md` bundle) before asking an AI for code, so its answers fit
@@ -120,6 +120,7 @@ python scripts/view_labels.py --data data/yolo/teeth/data.yaml --split train --n
 python scripts/view_labels.py --data data/yolo/teeth/data.yaml --split test --pred best.pt --out mistakes/
 python scripts/train_yolo.py --data data/yolo/teeth/data.yaml --name <person>-teeth-v1
 python scripts/score_numbering.py --weights runs/<name>/weights/best.pt --data data/yolo/teeth/data.yaml --split test [--rules]
+python scripts/compare_scores.py runs/<run-a> runs/<run-b> [runs/<run-c> ...]
 python scripts/preprocess_dataset.py --data data/yolo/teeth/data.yaml --out data/yolo/teeth_clahe [--preview 5]
 ```
 
@@ -129,6 +130,12 @@ python scripts/preprocess_dataset.py --data data/yolo/teeth/data.yaml --out data
   accuracy** = teeth found with the right number ÷ all real teeth (a match needs box overlap
   IoU ≥ 0.5). It also gives a 32-row per-tooth table, missing-tooth F1 and mAP50, and writes
   `score.json` and `score.csv` into the run folder. `--rules` applies the anatomy rules first.
+  It also prints a **95% confidence interval** (bootstrap: the test images resampled 1,000 times)
+  and writes `score_images.csv` (one row per image). `--skip FILE` leaves out listed images.
+- `compare_scores.py` reads those per-image files: for several seeds of one setup it gives mean,
+  SD and range; for two setups on the same images it gives the paired difference with its
+  interval ("no clear difference" if it contains 0). Report a result as a number with its CI.
+- `train_yolo.py --seed N` sets the random seed (default 42, used by every run before 10 Oct).
 - `preprocess_dataset.py` writes a crop + CLAHE copy of a YOLO dataset with the boxes shifted to
   match the crop (`--preview N` saves before/after images). Not needed for numbering (see above).
 
