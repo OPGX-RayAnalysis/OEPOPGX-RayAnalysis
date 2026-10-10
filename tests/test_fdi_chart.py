@@ -3,6 +3,7 @@ from opg import fdi as F
 
 # Independent chart for all 32 permanent teeth.
 # (FDI, Universal, Palmer, name)
+# Source chart: https://www.dentclosers.com/tooth-chart
 CHART = [
     (18, "1", "UR8", "upper right third molar (wisdom tooth)"),
     (17, "2", "UR7", "upper right second molar"),
