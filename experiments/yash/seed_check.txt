@@ -1,0 +1,36 @@
+﻿
+yash-teeth-v1-3: 93 images, 2682 teeth
+  numbering accuracy    94.4%   95% CI 92.5% to 96.0%
+  accuracy if found     95.5%   95% CI 93.6% to 96.9%
+  detection rate        98.9%   95% CI 98.2% to 99.4%
+  missing-tooth F1      82.2%   95% CI 77.6% to 86.2%
+
+yash-teeth-v1-seed1: 93 images, 2682 teeth
+  numbering accuracy    93.9%   95% CI 92.1% to 95.4%
+  accuracy if found     94.6%   95% CI 92.9% to 96.1%
+  detection rate        99.2%   95% CI 98.7% to 99.6%
+  missing-tooth F1      79.4%   95% CI 74.3% to 84.1%
+
+yash-teeth-v1-seed2: 93 images, 2682 teeth
+  numbering accuracy    94.3%   95% CI 92.6% to 95.9%
+  accuracy if found     95.1%   95% CI 93.5% to 96.7%
+  detection rate        99.1%   95% CI 98.6% to 99.6%
+  missing-tooth F1      82.1%   95% CI 77.8% to 86.1%
+
+Across the 3 runs (mean, SD, range):
+  numbering accuracy    94.2%   SD 0.3 points   range 93.9% to 94.4%
+  accuracy if found     95.1%   SD 0.4 points   range 94.6% to 95.5%
+  detection rate        99.1%   SD 0.2 points   range 98.9% to 99.2%
+  missing-tooth F1      81.3%   SD 1.6 points   range 79.4% to 82.2%
+
+yash-teeth-v1-seed1 minus yash-teeth-v1-3 (paired, same 93 images):
+  numbering accuracy    -0.6 points   95% CI -1.6 to +0.5   no clear difference
+  accuracy if found     -0.9 points   95% CI -1.8 to +0.1   no clear difference
+  detection rate        +0.3 points   95% CI -0.1 to +0.7   no clear difference
+  missing-tooth F1      -2.8 points   95% CI -6.9 to +0.9   no clear difference
+
+yash-teeth-v1-seed2 minus yash-teeth-v1-3 (paired, same 93 images):
+  numbering accuracy    -0.1 points   95% CI -1.1 to +1.0   no clear difference
+  accuracy if found     -0.3 points   95% CI -1.2 to +0.6   no clear difference
+  detection rate        +0.2 points   95% CI -0.1 to +0.6   no clear difference
+  missing-tooth F1      -0.1 points   95% CI -3.3 to +3.4   no clear difference
