@@ -1,6 +1,6 @@
 # Project context: OPG X-Ray AI
 
-Version 1.5 · 10 Oct 2026 · Owner: Kavya (team lead)
+Version 1.6 · 18 Oct 2026 · Owner: Kavya (team lead)
 
 This file is the shared ground for everyone on the team and for the AI tools we use. Upload it
 (as part of your `context_<name>.md` bundle) before asking an AI for code, so its answers fit
@@ -30,13 +30,14 @@ OPG ─► 1 preprocess ─┬─► 2 teeth + FDI numbers ─┐
 Everything after stage 4 reads the Findings JSON (`src/opg/schema.py`), never the raw image.
 
 **Phase 1 goal (now):** a model that numbers teeth accurately, measured on a held-out test set.
-The first presentation is on 17 Oct 2026 and needs a first baseline, not a finished model.
+The first presentation is on Wed 21 Oct 2026 (postponed from 17 Oct) and needs a first baseline, not a finished model.
 
 **Results so far:** cropping plus CLAHE does not help numbering (task 1.8: 90.9% numbering
 accuracy with and without, yolo11n, 50 epochs, test split). **Train numbering models on the
 plain images** (`data/yolo/teeth/`). Details: `experiments/shubh/RESULTS.md`.
 v1 numbering model (task 1.7): yolo11s, 100 epochs (early stop at 69), **94.4%** numbering accuracy
-on the test split (2,533 of 2,682 teeth); with anatomy rules on: 94.3%.
+on the test split (2,533 of 2,682 teeth), 95% CI 92.5% to 96.0%; with anatomy rules on: 94.3%.
+Seed check (task 2.13): seeds 42, 1, 2 give a mean of 94.2% (SD 0.3 points, range 93.9% to 94.4%).
 This is the number to beat in 2.4. Details: `experiments/yash/EXPERIMENTS.md`.
 
 ## 2. Team

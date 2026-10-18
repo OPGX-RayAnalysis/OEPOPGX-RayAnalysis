@@ -1,6 +1,6 @@
 # Track: Krisha (Tufts external test set, no GPU needed)
 
-**Task:** 1.14. Also: Related Literature slides (1.4, with Yash). After 17 Oct: 2.2.
+**Task:** 1.14. Also: Related Literature slides (1.4, with Yash). After 21 Oct: 2.2.
 
 **Status (7 Oct 2026):** 1.14 done and merged (PR #10). The Tufts terms forbid sharing, so there
 is no Drive zip; you score teammates' models on Tufts (their `best.pt` from Drive) and post
