@@ -1,6 +1,6 @@
 # Project context: OPG X-Ray AI
 
-Version 1.6 · 18 Oct 2026 · Owner: Kavya (team lead)
+Version 1.7 · 24 Oct 2026 · Owner: Kavya (team lead)
 
 This file is the shared ground for everyone on the team and for the AI tools we use. Upload it
 (as part of your `context_<name>.md` bundle) before asking an AI for code, so its answers fit
@@ -29,8 +29,11 @@ OPG ─► 1 preprocess ─┬─► 2 teeth + FDI numbers ─┐
 
 Everything after stage 4 reads the Findings JSON (`src/opg/schema.py`), never the raw image.
 
-**Phase 1 goal (now):** a model that numbers teeth accurately, measured on a held-out test set.
-The first presentation is on Wed 21 Oct 2026 (postponed from 17 Oct) and needs a first baseline, not a finished model.
+**Phase 1 (tooth numbering) is done** and was presented on Wed 21 Oct 2026.
+**Phase 2 (now):** the five future-work items from that deck: tune numbering, the Tufts outside
+test, the findings detector, the report checker, and a confidence / "refer to dentist" flag.
+Your Phase 2 task is in your track (`docs/tracks/<name>.md`) and your guide.
+Build finished by end of January 2027; final presentation end of February 2027.
 
 **Results so far:** cropping plus CLAHE does not help numbering (task 1.8: 90.9% numbering
 accuracy with and without, yolo11n, 50 epochs, test split). **Train numbering models on the
@@ -42,7 +45,7 @@ This is the number to beat in 2.4. Details: `experiments/yash/EXPERIMENTS.md`.
 
 ## 2. Team
 
-| Person | Phase 1 job |
+| Person | Phase 1 job (done) |
 |---|---|
 | Kavya | Lead. Data zip, scoring script, label viewer, these files; reviews and merges every PR |
 | Yash | Trains the tooth-numbering model (1.7, then 2.4) |
