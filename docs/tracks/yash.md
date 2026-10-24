@@ -11,13 +11,13 @@ Freeze the numbering model for the rest of the system: the best setting we can f
 - **2.4 Tune numbering.** Train yolo11m (1024 px) and yolo11s at 1280 px. Pick the winner on the **val**
   split against v1 (`compare_scores.py`), then score only the winner on **test**, with and without `--rules`.
   Upload the winner to Drive `weights/<run>/` and tell Krisha (she scores it on Tufts).
-- **2.5 Molar-only anatomy rules.** Phase 1 showed the rules fix wisdom teeth but hurt premolars.
+
+## Depends on Kavya's work
+- **2.5 Molar-only anatomy rules** (start after 2.15 is merged, because you both edit `score_numbering.py`). Phase 1 showed the rules fix wisdom teeth but hurt premolars.
   New option: only molars (positions 6, 7, 8) take the rules' number; every other tooth keeps the
   model's own number, exactly as with rules off. Add it to `src/opg/postprocess.py` as an argument of
   `apply_anatomy_rules` (default unchanged) and to `score_numbering.py` as `--molars-only` (used with
   `--rules`, writes `score_rules_molars.*`). Add tests. Compare off / all / molars-only on **val**, report on test.
-
-## Depends on Kavya's work
 - **Whole-scan accuracy (2.15).** When Kavya posts that 2.15 is merged, `git pull` and re-score your
   final runs: `score.json` then also has `whole_scan_accuracy`. Put it in `EXPERIMENTS.md`.
 

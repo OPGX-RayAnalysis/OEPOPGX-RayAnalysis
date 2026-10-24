@@ -12,8 +12,8 @@ treatments, and check whether the model's confidence can be trusted (calibration
   `mixed_dentition.txt`), download v1's `best.pt` from Drive, score all 1,000 and the 918 without baby
   teeth, rules off and on. Share the score files on Drive `results/krisha/tufts/`. Numbers only, never images.
 - **2.2 Zhou dual-labelled dataset.** Download from Kaggle, write `src/opg/data/zhou.py`,
-  `scripts/zhou_to_yolo.py` (two outputs: `data/yolo/zhou_teeth/` with the 32 FDI classes, and
-  `data/yolo/zhou_findings/` with tooth states as finding labels), `tests/test_zhou.py`, `docs/datasets/zhou.md`.
+  `scripts/zhou_to_yolo.py` (two outputs: `data/yolo/zhou/teeth/` with the 32 FDI classes, and
+  `data/yolo/zhou/findings/` with tooth states as finding labels), `tests/test_zhou.py`, `docs/datasets/zhou.md`.
   Split 70/15/15 by image, seed 42. Zip both to Drive `data/zhou_yolo_v1.zip`.
 
 ## Depends on Kavya's work

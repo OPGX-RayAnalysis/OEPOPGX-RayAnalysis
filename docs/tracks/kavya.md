@@ -12,7 +12,7 @@ Build the shared pieces the team waits on first, then start the hallucination lo
 - **2.16 DENTEX findings data + scorer.** `dentex_findings_v1.zip` on Drive `data/` (disease subset split
   90/10 train/val + the official 250 test images, 4 classes), `docs/datasets/dentex_findings.md` (with class
   counts), `scripts/score_findings.py` (per-class precision, recall, F1 at IoU 0.5 with 95% CI;
-  `score_findings.json`, `score_findings_images.csv`; `--merge-caries` counts deep caries as caries),
+  `score_findings.json`, `score_findings_images.csv`; `--merge-caries` counts deep caries as caries; classes matched by name, so any findings data.yaml works),
   and `compare_scores.py --findings` for paired comparisons.
 - **2.17 OralXrays-9.** Authors' release from their GitHub. Converter mapping its 9 classes to ours, official
   split kept, no DENTEX images, card, `oralxrays_yolo_v1.zip` on Drive. Diagnoses = outside test for 2.6;
