@@ -1,45 +1,41 @@
-# Track: Krisha (Tufts external test set, no GPU needed)
+# Track: Krisha (outside test data and calibration)
 
-**Task:** 1.14. Also: Related Literature slides (1.4, with Yash). After 21 Oct: 2.2.
-
-**Status (7 Oct 2026):** 1.14 done and merged (PR #10). The Tufts terms forbid sharing, so there
-is no Drive zip; you score teammates' models on Tufts (their `best.pt` from Drive) and post
-`score.json`/`score.csv` (all 1,000 images and the 918 without baby teeth).
+**Phase 2 tasks (25 Oct to Thu 5 Nov 2026, hard deadline 5 Nov):** 2.19 Tufts scores, 2.2 Zhou converter, 2.14 calibration.
+**Phase 1 (done):** 1.14 Tufts converter (1,000 images, 25,259 adult teeth, 82 with baby teeth).
 
 ## Goal
-Check that the model works on OPGs that aren't from DENTEX, using the Tufts Dental Database
-(~1,000 OPGs with tooth numbers).
+Show how the numbering model behaves on data it never saw (Tufts), onboard the Zhou dataset for
+treatments, and check whether the model's confidence can be trusted (calibration).
+
+## Depends on nothing (start now)
+- **2.19 (part 1) Tufts score of v1.** Re-run `tufts_to_yolo.py` (the 10 Oct version also writes
+  `mixed_dentition.txt`), download v1's `best.pt` from Drive, score all 1,000 and the 918 without baby
+  teeth, rules off and on. Share the score files on Drive `results/krisha/tufts/`. Numbers only, never images.
+- **2.2 Zhou dual-labelled dataset.** Download from Kaggle, write `src/opg/data/zhou.py`,
+  `scripts/zhou_to_yolo.py` (two outputs: `data/yolo/zhou_teeth/` with the 32 FDI classes, and
+  `data/yolo/zhou_findings/` with tooth states as finding labels), `tests/test_zhou.py`, `docs/datasets/zhou.md`.
+  Split 70/15/15 by image, seed 42. Zip both to Drive `data/zhou_yolo_v1.zip`.
+
+## Depends on Kavya's work
+- **2.14 Calibration** needs `score_preds.csv` from Kavya's task 2.15 (one row per predicted tooth:
+  confidence, and whether it was right). Write `src/opg/calibration.py` (ECE with 10 bins, reliability
+  table), `scripts/calibration.py` (prints ECE, saves a reliability diagram PNG), `tests/test_calibration.py`.
+  Run it on v1 for the DENTEX test split and for Tufts.
+- **2.19 (part 1 again)** after 2.15: re-score v1 on Tufts so the files include whole-scan accuracy.
+
+## Depends on Yash's work
+- **2.19 (part 2)** Score Yash's tuned model (2.4) on Tufts the same way, and compare it with v1.
 
 ## Files you may touch
-- `src/opg/data/tufts.py` (create)
-- `scripts/tufts_to_yolo.py` (create)
-- `tests/test_tufts.py` (create)
-- `docs/datasets/tufts.md` (create)
+- `src/opg/data/zhou.py`, `scripts/zhou_to_yolo.py`, `tests/test_zhou.py`, `docs/datasets/zhou.md`
+- `src/opg/calibration.py`, `scripts/calibration.py`, `tests/test_calibration.py`
+- `experiments/krisha/TUFTS.md`, `experiments/krisha/CALIBRATION.md`
 
-## Inputs
-- Tufts access (request form for academic use; use the college email).
-- `opg.fdi.from_universal` (Tufts uses Universal 1–32; convert to FDI).
-- `opg.data.dentex.write_yolo` to write the dataset, and `scripts/view_labels.py` to check it.
-
-## Outputs
-- `src/opg/data/tufts.py`: reads Tufts annotations, turns tooth outlines into boxes, converts
-  Universal → FDI.
-- `scripts/tufts_to_yolo.py` writes `data/yolo/tufts_test/` (images, labels, `data.yaml` with a
-  `test` split). Use `opg.data.dentex.TEETH_CLASSES` for the class list so the order matches
-  DENTEX exactly.
-- `docs/datasets/tufts.md`: image count, tooth count, missing teeth, licence terms, anything odd.
-- Drive `data/tufts_yolo_v1.zip`, only if the Tufts terms allow sharing inside the team.
+## Data rules
+- Tufts: never share images or files with anyone, never in any AI tool; share numbers only.
+- Zhou: non-commercial research only, team Drive only, never on GitHub; no real images in tests.
 
 ## Definition of done
-- `tests/test_tufts.py` tests the reader on a tiny fake sample (no real data in tests).
-- 20 converted images viewed with `view_labels.py`, and left/right is correct: the patient's
-  right is on the image's left (18 top far left).
-- `pytest` passes. Yash or Kavya score the model on your set; you don't need a GPU.
-
-## Starter commands
-```
-python scripts/tufts_to_yolo.py --raw data/raw/tufts --out data/yolo/tufts_test
-python scripts/view_labels.py --data data/yolo/tufts_test/data.yaml --split test --n 20 --random --out tufts_check/
-python scripts/view_labels.py --data data/yolo/tufts_test/data.yaml --split test --n 3 --system universal --out tufts_check_universal/
-```
-While waiting for access: write the dataset card outline and the reader skeleton.
+- Tufts scores for v1 and the tuned model on Drive and in `TUFTS.md`.
+- Zhou converter merged, zip on Drive, 20 images checked in the viewer.
+- Calibration merged, ECE + diagram for DENTEX test and Tufts in `CALIBRATION.md`.

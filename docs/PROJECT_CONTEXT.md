@@ -1,6 +1,6 @@
 # Project context: OPG X-Ray AI
 
-Version 1.7 · 24 Oct 2026 · Owner: Kavya (team lead)
+Version 1.8 · 24 Oct 2026 · Owner: Kavya (team lead)
 
 This file is the shared ground for everyone on the team and for the AI tools we use. Upload it
 (as part of your `context_<name>.md` bundle) before asking an AI for code, so its answers fit
@@ -32,8 +32,12 @@ Everything after stage 4 reads the Findings JSON (`src/opg/schema.py`), never th
 **Phase 1 (tooth numbering) is done** and was presented on Wed 21 Oct 2026.
 **Phase 2 (now):** the five future-work items from that deck: tune numbering, the Tufts outside
 test, the findings detector, the report checker, and a confidence / "refer to dentist" flag.
-Your Phase 2 task is in your track (`docs/tracks/<name>.md`) and your guide.
-Build finished by end of January 2027; final presentation end of February 2027.
+Your Phase 2 tasks are in your track (`docs/tracks/<name>.md`) and your guide.
+**Hard deadline for Phase 2: Thursday 5 November 2026.** College closes after that (Diwali, then exams),
+so everything must be merged or uploaded by then. Build finished by end of January 2027; final
+presentation end of February 2027.
+**Hallucination is tracked from now on:** every new model version gets a row in the hallucination
+log (task 2.18), so we can see how each change affects what the system wrongly claims.
 
 **Results so far:** cropping plus CLAHE does not help numbering (task 1.8: 90.9% numbering
 accuracy with and without, yolo11n, 50 epochs, test split). **Train numbering models on the
@@ -45,13 +49,13 @@ This is the number to beat in 2.4. Details: `experiments/yash/EXPERIMENTS.md`.
 
 ## 2. Team
 
-| Person | Phase 1 job (done) |
+| Person | Phase 2 job (to Thu 5 Nov 2026) |
 |---|---|
-| Kavya | Lead. Data zip, scoring script, label viewer, these files; reviews and merges every PR |
-| Yash | Trains the tooth-numbering model (1.7, then 2.4) |
-| Shubh | Image preprocessing, and tests whether it helps numbering (1.8) |
-| Krisha | Tufts external test set (1.14) |
-| Faizan | Tooth-number converter tests (1.15) and label spot-check (1.16) |
+| Kavya | Lead. Scorer additions (2.15), findings data + scorer (2.16), OralXrays-9 (2.17), hallucination log (2.18); reviews and merges every PR |
+| Yash | Tunes and freezes the numbering model (2.4), molar-only anatomy rules (2.5) |
+| Shubh | Findings detector: diagnoses (2.6) and treatments (2.7) |
+| Krisha | Tufts scores (2.19), Zhou dataset converter (2.2), calibration (2.14) |
+| Faizan | Baby-teeth chart test (2.9), report examples (3.1), findings label spot-check (2.20) |
 
 Task numbers (like 1.11) refer to the team plan and tracker.
 
@@ -77,6 +81,13 @@ Task numbers (like 1.11) refer to the team plan and tracker.
   no Tufts X-rays on WhatsApp, Drive or GitHub, and none uploaded to any AI tool (ChatGPT,
   Gemini, Claude, etc.). To score a model on Tufts, put its `best.pt`
   on Drive and Krisha scores it and shares `score.json`/`score.csv` (numbers are fine to share).
+
+- **New datasets for findings (Phase 2).** DENTEX findings (`dentex_findings_v1.zip`, 4 diagnoses:
+  impacted, caries, deep_caries, periapical_lesion; test = the official 250 DENTEX test images).
+  **Zhou et al. 2024** dual-labelled set (Kaggle; FDI numbers + tooth states: filling, root canal,
+  crown, caries, residual root) and **OralXrays-9** (CVPR 2025, the authors' own release; outside test
+  for findings). Neither states a licence: **non-commercial research only, cite the paper, team Drive
+  only, never on GitHub, no real images in tests.**
 
 ## 4. Tooth numbering (read this before touching any numbering code)
 

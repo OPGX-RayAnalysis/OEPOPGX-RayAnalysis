@@ -1,41 +1,38 @@
-# Track: Shubh (does cleaning the image help numbering?)
+# Track: Shubh (findings detector)
 
-**Task:** 1.8 (done, merged 6 Oct 2026: CLAHE gives no gain). After 21 Oct: 2.1 (resize, masking burned-in text), then the findings detector (2.6).
+**Phase 2 tasks (25 Oct to Thu 5 Nov 2026, hard deadline 5 Nov):** 2.6 diagnosis detector, 2.7 treatment detector.
+**Phase 1 (done):** 1.8 crop + CLAHE gave no numbering gain (90.9% both), so numbering trains on plain images.
 
 ## Goal
-Make the X-rays clearer (crop, CLAHE), then prove whether that helps the model number teeth.
+Bring findings to the level numbering reached in Phase 1: a trained model, scored on held-out test
+images with a 95% CI, plain vs CLAHE compared, a seed check, and a score on outside data.
+
+## Depends on Kavya's work
+- **2.6 Diagnosis detector** (caries, deep caries, periapical lesion, impacted tooth) needs Kavya's
+  `dentex_findings_v1.zip` and `scripts/score_findings.py` (task 2.16). Train plain and CLAHE, pick on
+  **val**, score the winner on **test** (the official 250 DENTEX test images), then 2 more seeds of the winner.
+- **Outside test** of the 2.6 winner on OralXrays-9 needs Kavya's `oralxrays_yolo_v1.zip` (task 2.17).
+
+## Depends on Krisha's work
+- **2.7 Treatment detector** (filling, root canal filling, crown, plus caries and residual root) needs
+  Krisha's `zhou_yolo_v1.zip` (task 2.2). If Kavya finds implants in OralXrays-9, she adds them and posts a new data.yaml.
 
 ## Files you may touch
-- `scripts/preprocess_dataset.py` (create)
-- `tests/test_preprocess.py` (create)
-- `experiments/shubh/RESULTS.md` (create)
-- `src/opg/preprocess.py` (crop, CLAHE and resize already exist; extend, don't rewrite)
+- `experiments/shubh/FINDINGS.md` (create)
+- `scripts/preprocess_dataset.py` (yours) if a dataset needs a small change.
 
-## Inputs
-- `dentex_yolo_v1.zip` from Drive `data/` → `data/yolo/teeth/`
-- `src/opg/preprocess.py`, `src/opg/data/yolo.py`, `scripts/train_yolo.py`, `scripts/score_numbering.py`
-
-## Outputs
-- `python scripts/preprocess_dataset.py --data data/yolo/teeth/data.yaml --out data/yolo/teeth_clahe`
-  makes a cleaned copy with **label boxes shifted to match the crop**, and a `data.yaml` with
-  the same class order.
-- `--preview N` writes N before/after images for the slides.
-- Drive: `weights/shubh-plain-v1/`, `weights/shubh-clahe-v1/`, `results/shubh/before_after/*.png`.
-  Don't upload the cleaned dataset; the script recreates it.
-- One line for Yash: e.g. "CLAHE: +X% numbering accuracy, use it" or "no gain".
+## Data rules
+- DENTEX test images: scoring only, never training.
+- Zhou and OralXrays-9: non-commercial research only, team Drive only, never on GitHub.
 
 ## Definition of done
-- `tests/test_preprocess.py` proves the boxes still line up after cropping (fake image + box).
-- Two runs with identical settings (yolo11n or s, ~50 epochs), plain vs cleaned, both scored
-  with `score_numbering.py` on the test split.
-- `RESULTS.md`: the two-row score table and the conclusion. `pytest` passes.
+- 2.6: plain vs CLAHE on val, winner on test with CI, 2 extra seeds, OralXrays-9 outside score, weights on Drive, PR merged.
+- 2.7: trained, scored on the Zhou test split, weights on Drive, PR merged.
 
 ## Starter commands
 ```
-python scripts/train_yolo.py --data data/yolo/teeth/data.yaml --name shubh-plain-v1 --model yolo11n.pt --epochs 50 --batch 8
-python scripts/train_yolo.py --data data/yolo/teeth_clahe/data.yaml --name shubh-clahe-v1 --model yolo11n.pt --epochs 50 --batch 8
-python scripts/score_numbering.py --weights runs/shubh-plain-v1/weights/best.pt --data data/yolo/teeth/data.yaml --split test
-python scripts/score_numbering.py --weights runs/shubh-clahe-v1/weights/best.pt --data data/yolo/teeth_clahe/data.yaml --split test
-python scripts/view_labels.py --data data/yolo/teeth_clahe/data.yaml --n 5 --random --out check_clahe/
+python scripts/train_yolo.py --data data/yolo/findings/data.yaml --name shubh-findings-plain-v1 --batch 8
+python scripts/preprocess_dataset.py --data data/yolo/findings/data.yaml --out data/yolo/findings_clahe
+python scripts/score_findings.py --weights runs/<run>/weights/best.pt --data data/yolo/findings/data.yaml --split val
 ```
-Check the cleaned labels with `view_labels.py` before training: the boxes must sit on the teeth.
+Flips stay off in every run (`train_yolo.py` already does this).

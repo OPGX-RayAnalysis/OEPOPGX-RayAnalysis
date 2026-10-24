@@ -1,40 +1,30 @@
 # Track: Faizan (checker)
 
-**Tasks:** 1.15 (converter tests), 1.16 (label spot-check). Also: Introduction and Motivation slides.
+**Phase 2 tasks (25 Oct to Thu 5 Nov 2026, hard deadline 5 Nov):** 2.9 baby-teeth chart test, 3.1 report examples, 2.20 findings spot-check.
+**Phase 1 (done):** 1.15 FDI chart test (32 adult teeth), 1.16 label spot-check (30 images).
 
 ## Goal
-Check that our tooth-number conversions are right, and find wrong labels in the data.
+Check the numbering code for baby teeth, collect real report examples (they define what our
+reports may claim), and find wrong labels in the new findings data.
+
+## Depends on nothing (start now)
+- **2.9 Baby-teeth chart test.** Same method as 1.15, for the 20 primary teeth (FDI 51–85, Universal
+  A–T, Palmer letters A–E). New file `tests/test_fdi_chart_primary.py`, chart source at the top.
+  Don't change `fdi.py`; report failures in the team WhatsApp group.
+- **3.1 Report examples (no coding).** 5–10 real OPG reports from public sources, copied word for word
+  with source links, plus a table of the kinds of statements ("claim types") they make. Google Doc
+  `results/faizan/report_examples` on Drive. Questions for Dr. Pinak go to Kavya as a list.
+
+## Depends on Kavya's and Krisha's work
+- **2.20 Findings spot-check (no coding).** Same method as 1.16: 30 images from Kavya's DENTEX findings
+  data (`dentex_findings_v1.zip`, task 2.16) and 20 from Krisha's Zhou data (`zhou_yolo_v1.zip`, task 2.2).
+  Log problems in the Drive sheet `results/faizan/findings_spotcheck`.
 
 ## Files you may touch
-- `tests/test_fdi_chart.py` (create). Nothing else in the code.
-- Drive: the `label_spotcheck` sheet and images in `results/faizan/`.
+- `tests/test_fdi_chart_primary.py` (create). Nothing else in the code.
+- Drive: `results/faizan/` (the two sheets/docs and flagged images).
 
-## 1.15 Converter check
-- Type out all 32 adult teeth from a trusted dental chart: FDI, Universal, Palmer, tooth name.
-  Put the chart's source (link or book) in a comment at the top.
-- A loop checks that `opg.fdi` gives the same answers both ways: `to_universal`,
-  `from_universal`, `to_palmer`, `from_palmer`, and `describe` for the name.
-- If a test fails, post it in the team WhatsApp group. Don't change `fdi.py` yourself.
-- Done: `pytest` passes (or the failures are reported), PR opened.
-
-## 1.16 Label spot-check (no coding)
-- Run the view command below, open each image, and check every tooth number against the chart.
-- Log each problem as a row in the sheet: image, tooth, problem
-  (e.g. `train_187.png | 36 | labelled 37`).
-- Copy flagged images into Drive `results/faizan/`.
-- Done: 30 images checked, sheet filled (or "no problems" written).
-
-## Starter commands
-```
-pytest tests/test_fdi_chart.py
-python scripts/view_labels.py --data data/yolo/teeth/data.yaml --split train --n 30 --random --seed 1 --out spotcheck/
-```
-The patient's right is on the image's left, so 18 is top far left and 48 bottom far left.
-Quadrant colours: 1 red, 2 green, 3 blue, 4 orange.
-
-## Git in 5 steps
-1. `git checkout faizan`, then `git pull --no-edit origin main`
-2. Make your change, then run `pytest`
-3. `git add tests/test_fdi_chart.py`, then `git status` (only your file listed)
-4. `git commit -m "1.15: FDI chart test"`, then `git push origin faizan`
-5. On GitHub: Pull requests → New pull request → base `main`, compare `faizan` → fill in the template → Create
+## Definition of done
+- 2.9 PR merged, chart source cited.
+- 3.1 doc filled: 5–10 reports with links, claim-type table.
+- 2.20 sheet filled (or "no problems found"), flagged images on Drive.
