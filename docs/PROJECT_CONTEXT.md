@@ -1,6 +1,6 @@
 # Project context: OPG X-Ray AI
 
-Version 1.8 · 24 Oct 2026 · Owner: Kavya (team lead)
+Version 1.9 · 27 Oct 2026 · Owner: Kavya (team lead)
 
 This file is the shared ground for everyone on the team and for the AI tools we use. Upload it
 (as part of your `context_<name>.md` bundle) before asking an AI for code, so its answers fit
@@ -38,6 +38,10 @@ so everything must be merged or uploaded by then. Build finished by end of Janua
 presentation end of February 2027.
 **Hallucination is tracked from now on:** every new model version gets a row in the hallucination
 log (task 2.18), so we can see how each change affects what the system wrongly claims.
+A **claim** is one statement about one tooth (tooth 36 present, 48 missing, 26 has caries). Two checks:
+against the Findings JSON (did the text invent it?) and against the expert labels (is it true?).
+We also report the four groups used by Balel 2026 (True, False, Missing, Hallucination) so our
+numbers can be compared with that paper.
 
 **Results so far:** cropping plus CLAHE does not help numbering (task 1.8: 90.9% numbering
 accuracy with and without, yolo11n, 50 epochs, test split). **Train numbering models on the
@@ -86,8 +90,11 @@ Task numbers (like 1.11) refer to the team plan and tracker.
   impacted, caries, deep_caries, periapical_lesion; test = the official 250 DENTEX test images).
   **Zhou et al. 2024** dual-labelled set (Kaggle; FDI numbers + tooth states: filling, root canal,
   crown, caries, residual root) and **OralXrays-9** (CVPR 2025, the authors' own release; outside test
-  for findings). Neither states a licence: **non-commercial research only, cite the paper, team Drive
-  only, never on GitHub, no real images in tests.**
+  for findings). Zhou states no licence. OralXrays-9's authors gave us **written permission
+  (24 Oct 2026)** for training, evaluation and publication, provided we cite their CVPR 2025 paper,
+  keep the official split when comparing with their results, keep its test images out of training and
+  validation when it is our outside test, and never redistribute the images or annotations. For both:
+  **non-commercial research only, cite the paper, team Drive only, never on GitHub, no real images in tests.**
 
 ## 4. Tooth numbering (read this before touching any numbering code)
 
