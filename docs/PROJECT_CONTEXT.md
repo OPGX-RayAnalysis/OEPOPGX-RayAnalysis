@@ -1,6 +1,6 @@
 # Project context: OPG X-Ray AI
 
-Version 1.9 · 27 Oct 2026 · Owner: Kavya (team lead)
+Version 1.10 · 29 Oct 2026 · Owner: Kavya (team lead)
 
 This file is the shared ground for everyone on the team and for the AI tools we use. Upload it
 (as part of your `context_<name>.md` bundle) before asking an AI for code, so its answers fit
@@ -154,6 +154,10 @@ python scripts/preprocess_dataset.py --data data/yolo/teeth/data.yaml --out data
   `score.json` and `score.csv` into the run folder. `--rules` applies the anatomy rules first.
   It also prints a **95% confidence interval** (bootstrap: the test images resampled 1,000 times)
   and writes `score_images.csv` (one row per image). `--skip FILE` leaves out listed images.
+  It also gives **whole-scan accuracy** (share of scans where every tooth has the right number and
+  no extra box is claimed) and writes `score_preds.csv` (one row per prediction: image, fdi,
+  confidence, matched, correct) for calibration and the hallucination log. With rules off, most
+  extra boxes are a second box on an already-found tooth, so report whole-scan accuracy with rules on too.
 - `compare_scores.py` reads those per-image files: for several seeds of one setup it gives mean,
   SD and range; for two setups on the same images it gives the paired difference with its
   interval ("no clear difference" if it contains 0). Report a result as a number with its CI.

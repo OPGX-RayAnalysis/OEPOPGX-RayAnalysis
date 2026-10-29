@@ -9,16 +9,23 @@ the number. Then, over all real teeth:
     accuracy if found    right number / matched                      (numbering alone)
     missing-tooth F1     per image, each of the 32 permanent teeth is "missing" or not, in the
                          labels and in the predictions; F1 of the "missing" class
-    mAP50                class-aware average precision at IoU 0.5 (all-point interpolation),
+    whole-scan accuracy  share of images where every real tooth is found with the right number
+                         AND no extra tooth is claimed (no unmatched prediction) (task 2.15)
+    mAP50               class-aware average precision at IoU 0.5 (all-point interpolation),
                          a little above what Ultralytics prints (its 101-point method gave
                          30.0% where this gave 32.2% on the 5-epoch smoke model); compare
                          mAP50 only between runs scored by this script
 
 The Scorer also keeps one row of counts per image (Scorer.images). From those rows,
-summarize() recomputes the first four numbers on any subset of images, bootstrap_ci() gives
+summarize() recomputes the first five numbers on any subset of images, bootstrap_ci() gives
 a 95% confidence interval by resampling images (task 2.13), and paired_difference_ci() says
 whether two models really differ on the same images. mAP50 has no interval: it needs every
-raw prediction, and recomputing it 1,000 times is too slow.
+raw prediction, and recomputing it 1,000 times is too slow. Rows saved before 2.15 have no
+`extra` count, so their whole-scan accuracy is None.
+
+It also keeps one row per scored prediction (Scorer.preds, PRED_FIELDS): its confidence,
+whether it matched a real tooth, and whether the number was right. Calibration (task 2.14)
+and the hallucination log (task 2.18) are built from these rows.
 """
 
 from __future__ import annotations
@@ -82,6 +89,7 @@ class Scorer:
     missing: dict = field(default_factory=lambda: {"tp": 0, "fp": 0, "fn": 0})
     ap_hits: dict = field(default_factory=lambda: defaultdict(list))
     images: list = field(default_factory=list)  # one row of counts per image, see IMAGE_FIELDS
+    preds: list = field(default_factory=list)  # one row per scored prediction, see PRED_FIELDS
     n_images: int = 0
 
     def add(self, truth: list[Tooth], pred: list[Tooth], pred_all: list[Tooth] | None = None, name: str = "") -> None:
@@ -90,6 +98,13 @@ class Scorer:
         self.n_images += 1
         image = {"image": name or str(self.n_images), "teeth": len(truth), "detected": 0, "correct": 0}
         pairs = dict(match(truth, pred, self.iou_threshold))
+        matched_to = {j: i for i, j in pairs.items()}  # pred index -> truth index
+        for j, p in enumerate(pred):
+            i = matched_to.get(j)
+            self.preds.append({
+                "image": image["image"], "fdi": p.fdi, "confidence": round(p.conf, 4),
+                "matched": int(i is not None), "correct": int(i is not None and truth[i].fdi == p.fdi),
+            })
         for i, t in enumerate(truth):
             row = self.per_tooth[t.fdi]
             row["count"] += 1
@@ -114,6 +129,7 @@ class Scorer:
         for k, v in missing.items():
             self.missing[k] += v
             image[f"missing_{k}"] = v
+        image["extra"] = len(pred) - len(pairs)
         self.images.append(image)
 
         self._add_ap(truth, pred if pred_all is None else pred_all)
@@ -155,6 +171,8 @@ class Scorer:
             "accuracy_if_found": _ratio(correct, detected),
             "detection_rate": _ratio(detected, total),
             "missing_tooth_f1": _ratio(2 * m["tp"], 2 * m["tp"] + m["fp"] + m["fn"]),
+            "whole_scan_accuracy": summarize(self.images)["whole_scan_accuracy"],
+            "extra_teeth": sum(r["extra"] for r in self.images),
             "missing_counts": dict(m),
             "map50": sum(aps) / len(aps) if aps else None,
             "per_tooth": rows,
@@ -165,14 +183,18 @@ def _ratio(a: float, b: float) -> float | None:
     return a / b if b else None
 
 
-IMAGE_FIELDS = ["image", "teeth", "detected", "correct", "missing_tp", "missing_fp", "missing_fn"]
-CI_METRICS = ["numbering_accuracy", "accuracy_if_found", "detection_rate", "missing_tooth_f1"]
+IMAGE_FIELDS = ["image", "teeth", "detected", "correct", "missing_tp", "missing_fp", "missing_fn", "extra"]
+PRED_FIELDS = ["image", "fdi", "confidence", "matched", "correct"]
+CI_METRICS = ["numbering_accuracy", "accuracy_if_found", "detection_rate", "missing_tooth_f1", "whole_scan_accuracy"]
 
 
 def summarize(images: list[dict]) -> dict:
-    """The four per-image-additive metrics (CI_METRICS) from per-image rows."""
-    total = {k: sum(r[k] for r in images) for k in IMAGE_FIELDS[1:]}
+    """The per-image metrics (CI_METRICS) from per-image rows."""
+    total = {k: sum(r[k] for r in images) for k in ["teeth", "detected", "correct", "missing_tp", "missing_fp", "missing_fn"]}
     tp, fp, fn = total["missing_tp"], total["missing_fp"], total["missing_fn"]
+    whole = None
+    if all("extra" in r for r in images):
+        whole = _ratio(sum(r["correct"] == r["teeth"] and r["extra"] == 0 for r in images), len(images))
     return {
         "images": len(images),
         "teeth": total["teeth"],
@@ -180,6 +202,7 @@ def summarize(images: list[dict]) -> dict:
         "accuracy_if_found": _ratio(total["correct"], total["detected"]),
         "detection_rate": _ratio(total["detected"], total["teeth"]),
         "missing_tooth_f1": _ratio(2 * tp, 2 * tp + fp + fn),
+        "whole_scan_accuracy": whole,
     }
 
 

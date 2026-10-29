@@ -11,9 +11,11 @@ Usage:
 --rules applies the anatomy rules (postprocess.apply_anatomy_rules) to the predictions first.
 --skip leaves out the images named in a text file (one file name per line).
 Writes, next to the weights' run folder or into --out (score_rules.* with --rules):
-    score.json          all numbers, plus a 95% bootstrap interval for the first four (ci95)
+    score.json          all numbers, plus a 95% bootstrap interval for the first five (ci95)
     score.csv           per tooth
     score_images.csv    per image, for scripts/compare_scores.py (seeds, A vs B, subsets)
+    score_preds.csv     per scored prediction: image, fdi, confidence, matched, correct
+                        (calibration, task 2.14; hallucination log, task 2.18)
 """
 
 from __future__ import annotations
@@ -27,7 +29,7 @@ import cv2
 
 from opg.data import yolo as Y
 from opg.postprocess import RawTooth, apply_anatomy_rules
-from opg.scoring import IMAGE_FIELDS, Scorer, Tooth, bootstrap_ci
+from opg.scoring import IMAGE_FIELDS, PRED_FIELDS, Scorer, Tooth, bootstrap_ci
 
 MAP_CONF = 0.001  # mAP needs (almost) every prediction, accuracy uses --conf
 
@@ -116,6 +118,10 @@ def main() -> None:
         writer = csv.DictWriter(f, fieldnames=IMAGE_FIELDS)
         writer.writeheader()
         writer.writerows(scorer.images)
+    with open(out / f"{stem}_preds.csv", "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=PRED_FIELDS)
+        writer.writeheader()
+        writer.writerows(scorer.preds)
 
     def pct(v):
         return "n/a" if v is None else f"{100 * v:.1f}%"
@@ -129,10 +135,12 @@ def main() -> None:
     print(f"  accuracy if found   {pct(score['accuracy_if_found'])}{ci('accuracy_if_found')}")
     print(f"  detection rate      {pct(score['detection_rate'])}{ci('detection_rate')}")
     print(f"  missing-tooth F1    {pct(score['missing_tooth_f1'])}{ci('missing_tooth_f1')}")
+    print(f"  whole-scan accuracy {pct(score['whole_scan_accuracy'])}{ci('whole_scan_accuracy')}   (every tooth right, nothing extra)")
+    print(f"  extra teeth claimed {score['extra_teeth']}   (predictions matching no real tooth)")
     print(f"  mAP50 (raw model)   {pct(score['map50'])}")
     worst = sorted((r for r in score["per_tooth"] if r["count"]), key=lambda r: r["accuracy"])[:5]
     print("  weakest teeth       " + ", ".join(f"{r['fdi']} {pct(r['accuracy'])}" for r in worst))
-    print(f"Saved {out / stem}.json, {stem}.csv and {stem}_images.csv")
+    print(f"Saved {out / stem}.json, {stem}.csv, {stem}_images.csv and {stem}_preds.csv")
 
 
 if __name__ == "__main__":
