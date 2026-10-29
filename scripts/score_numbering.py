@@ -15,7 +15,9 @@ Writes, next to the weights' run folder or into --out (score_rules.* with --rule
     score.csv           per tooth
     score_images.csv    per image, for scripts/compare_scores.py (seeds, A vs B, subsets)
     score_preds.csv     per scored prediction: image, fdi, confidence, matched, correct
-                        (calibration, task 2.14; hallucination log, task 2.18)
+                        (calibration, task 2.14)
+    score_claims.csv    per claim ("36 present", "48 missing"): supported or which error,
+                        for scripts/log_hallucination.py (task 2.18)
 """
 
 from __future__ import annotations
@@ -29,6 +31,7 @@ import cv2
 
 from opg.data import yolo as Y
 from opg.postprocess import RawTooth, apply_anatomy_rules
+from opg.claims import CLAIM_FIELDS
 from opg.scoring import IMAGE_FIELDS, PRED_FIELDS, Scorer, Tooth, bootstrap_ci
 
 MAP_CONF = 0.001  # mAP needs (almost) every prediction, accuracy uses --conf
@@ -122,6 +125,10 @@ def main() -> None:
         writer = csv.DictWriter(f, fieldnames=PRED_FIELDS)
         writer.writeheader()
         writer.writerows(scorer.preds)
+    with open(out / f"{stem}_claims.csv", "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=CLAIM_FIELDS)
+        writer.writeheader()
+        writer.writerows(scorer.claims)
 
     def pct(v):
         return "n/a" if v is None else f"{100 * v:.1f}%"
@@ -140,7 +147,7 @@ def main() -> None:
     print(f"  mAP50 (raw model)   {pct(score['map50'])}")
     worst = sorted((r for r in score["per_tooth"] if r["count"]), key=lambda r: r["accuracy"])[:5]
     print("  weakest teeth       " + ", ".join(f"{r['fdi']} {pct(r['accuracy'])}" for r in worst))
-    print(f"Saved {out / stem}.json, {stem}.csv, {stem}_images.csv and {stem}_preds.csv")
+    print(f"Saved {out / stem}.json, {stem}.csv, {stem}_images.csv, {stem}_preds.csv and {stem}_claims.csv")
 
 
 if __name__ == "__main__":

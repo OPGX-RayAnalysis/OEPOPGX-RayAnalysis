@@ -17,6 +17,7 @@ Writes, next to the weights' run folder or into --out (score_findings_merged.* w
     score_findings.csv          per class: truth, tp, fp, fn, precision, recall, F1, AP50
     score_findings_images.csv   per image per class, for compare_scores.py --findings
     score_findings_preds.csv    per scored prediction: image, finding, confidence, matched
+    score_findings_claims.csv   per claim (and per omitted real finding), for log_hallucination.py
 """
 
 from __future__ import annotations
@@ -28,6 +29,7 @@ from pathlib import Path
 
 import cv2
 
+from opg.claims import CLAIM_FIELDS
 from opg.data import yolo as Y
 from opg.scoring_findings import (
     FINDING_IMAGE_FIELDS, FINDING_PRED_FIELDS, MERGE_CARIES, Finding, FindingScorer, bootstrap_findings_ci, normalize,
@@ -140,6 +142,10 @@ def main() -> None:
         writer = csv.DictWriter(f, fieldnames=FINDING_PRED_FIELDS)
         writer.writeheader()
         writer.writerows(scorer.preds)
+    with open(out / f"{stem}_claims.csv", "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=CLAIM_FIELDS)
+        writer.writeheader()
+        writer.writerows(scorer.claims)
 
     def pct(v):
         return "n/a" if v is None else f"{100 * v:.1f}%"
@@ -160,7 +166,7 @@ def main() -> None:
     print(f"  pooled          precision {pct(p['precision'])}, recall {pct(p['recall'])}, F1 {pct(p['f1'])}   (all findings together)")
     print(f"  invented        {p['fp']} findings matching no real one;  missed {p['fn']}")
     print(f"  mAP50 (raw)     {pct(score['map50'])}")
-    print(f"Saved {out / stem}.json, {stem}.csv, {stem}_images.csv and {stem}_preds.csv")
+    print(f"Saved {out / stem}.json, {stem}.csv, {stem}_images.csv, {stem}_preds.csv and {stem}_claims.csv")
 
 
 if __name__ == "__main__":

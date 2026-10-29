@@ -92,6 +92,7 @@ would really be 28. `train_yolo.py` turns flips off.
 | `src/opg/scoring.py`, `scripts/score_numbering.py` | Numbering accuracy, per-tooth table, missing-tooth F1, mAP50, 95% bootstrap CI | 1.11, 2.13 |
 | `scripts/compare_scores.py` | Mean and spread over seeds, paired A-vs-B difference, subsets | 2.13 |
 | `src/opg/scoring_findings.py`, `scripts/score_findings.py` | Findings precision, recall, F1 per class, mean F1, AP50, 95% bootstrap CI | 2.16 |
+| `src/opg/claims.py`, `scripts/log_hallucination.py` | Claim-level hallucination rate per error type, 95% CI, Balel's four groups; the hallucination log | 2.18 |
 | `docs/PROJECT_CONTEXT.md`, `docs/tracks/`, `scripts/make_context.py` | Shared rules, per-person briefs, AI context bundle | 1.13 |
 | `scripts/` | Download, convert, train, analyze | — |
 | `tests/` | Pytest suite, run before every merge | — |

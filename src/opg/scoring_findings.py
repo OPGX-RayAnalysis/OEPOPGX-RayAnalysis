@@ -26,7 +26,8 @@ The scorer keeps one row of counts per image per class (FINDING_IMAGE_FIELDS), s
 scoring.py, summarize_findings() recomputes everything on any subset of images,
 bootstrap_findings_ci() gives 95% intervals by resampling images, and
 paired_findings_difference() compares two models on the same images. It also keeps one row per
-scored prediction (FINDING_PRED_FIELDS) for calibration (2.14) and the hallucination log (2.18).
+scored prediction (FINDING_PRED_FIELDS) for calibration (2.14), and one row per claim
+(claims.CLAIM_FIELDS) for the hallucination log (2.18).
 """
 
 from __future__ import annotations
@@ -35,6 +36,7 @@ import random
 from collections import defaultdict
 from dataclasses import dataclass, field
 
+from .claims import findings_claims
 from .scoring import _percentiles, _ratio, ap_hits, average_precision, match
 
 FINDING_IMAGE_FIELDS = ["image", "finding", "truth", "tp", "fp", "fn"]
@@ -65,6 +67,7 @@ class FindingScorer:
     merge: dict = field(default_factory=dict)
     images: list = field(default_factory=list)  # one row per image per class, see FINDING_IMAGE_FIELDS
     preds: list = field(default_factory=list)  # one row per scored prediction, see FINDING_PRED_FIELDS
+    claims: list = field(default_factory=list)  # one row per claim, see claims.CLAIM_FIELDS (task 2.18)
     hits: dict = field(default_factory=lambda: defaultdict(list))
     n_images: int = 0
 
@@ -81,6 +84,7 @@ class FindingScorer:
         name = name or str(self.n_images)
         truth, pred = self._keep(truth), self._keep(pred)
         pred_all = pred if pred_all is None else self._keep(pred_all)
+        self.claims += findings_claims(truth, pred, name, self.iou_threshold)
         for c in self.classes:
             t = [f for f in truth if f.name == c]
             p = [f for f in pred if f.name == c]
