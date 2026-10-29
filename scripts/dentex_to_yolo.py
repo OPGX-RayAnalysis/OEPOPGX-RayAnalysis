@@ -26,15 +26,7 @@ from collections import Counter
 from pathlib import Path
 
 from opg.data import dentex as D
-
-
-def image_hash(path: Path) -> bytes:
-    """Tiny brightness fingerprint (16 x 8, above / below the mean): the same X-ray saved twice
-    gets the same fingerprint, different X-rays almost never do."""
-    import cv2
-
-    small = cv2.resize(cv2.imread(str(path), cv2.IMREAD_GRAYSCALE), (16, 8), interpolation=cv2.INTER_AREA)
-    return (small > small.mean()).tobytes()
+from opg.data.yolo import fingerprint
 
 
 def main() -> None:
@@ -83,10 +75,10 @@ def main() -> None:
         excluded = []
         if test_dir.exists():
             official = D.load_labelme_test(test_dir / "label", test_dir / "input")
-            seen = {image_hash(r["path"]): r["file"] for r in records}
+            seen = {fingerprint(r["path"]): r["file"] for r in records}
             kept = []
             for r in official:
-                twin = seen.get(image_hash(r["path"]))
+                twin = seen.get(fingerprint(r["path"]))
                 if twin:
                     excluded.append(f"test_official\t{r['file']}\tsame image as {twin}\n")
                 else:

@@ -56,12 +56,12 @@ def mirror(fdi: int) -> int:
     return other * 10 + position
 
 
-def _best_overlap(box, truth):
+def _best_overlap(box, truth, overlap=iou):
     best, best_t = 0.0, None
     for t in truth:
-        overlap = iou(box, t.bbox)
-        if overlap > best:
-            best, best_t = overlap, t
+        o = overlap(t.bbox, box)
+        if o > best:
+            best, best_t = o, t
     return best, best_t
 
 
@@ -88,9 +88,10 @@ def numbering_claims(truth: list, pred: list, image: str = "", iou_threshold: fl
     return rows
 
 
-def findings_claims(truth: list, pred: list, image: str = "", iou_threshold: float = 0.5) -> list[dict]:
+def findings_claims(truth: list, pred: list, image: str = "", iou_threshold: float = 0.5, overlap=iou) -> list[dict]:
     """truth, pred: objects with .name, .bbox (pred also .conf), e.g. scoring_findings.Finding.
-    Pass them after any class merge and filtering, as the scorer scores them."""
+    Pass them after any class merge and filtering, as the scorer scores them. overlap(truth box,
+    pred box): iou, or geometry.cover for lesion-sized labels. Repeats are still judged by iou."""
     said = []
     for p in sorted(pred, key=lambda p: -p.conf):
         if not any(q.name == p.name and iou(q.bbox, p.bbox) >= iou_threshold for q in said):
@@ -98,11 +99,11 @@ def findings_claims(truth: list, pred: list, image: str = "", iou_threshold: flo
     rows = []
     for p in said:
         same = [t for t in truth if t.name == p.name]
-        if _best_overlap(p.bbox, same)[0] >= iou_threshold:
+        if _best_overlap(p.bbox, same, overlap)[0] >= iou_threshold:
             rows.append({"image": image, "claim": "finding", "about": p.name, "supported": 1, "error": ""})
             continue
-        overlap, t = _best_overlap(p.bbox, truth)
-        if overlap < iou_threshold:
+        o, t = _best_overlap(p.bbox, truth, overlap)
+        if o < iou_threshold:
             error = "invented_finding"
         elif p.name == "deep_caries" and t.name == "caries":
             error = "severity_inflation"
@@ -110,7 +111,7 @@ def findings_claims(truth: list, pred: list, image: str = "", iou_threshold: flo
             error = "wrong_finding"
         rows.append({"image": image, "claim": "finding", "about": p.name, "supported": 0, "error": error})
     for t in truth:
-        if not any(p.name == t.name and iou(p.bbox, t.bbox) >= iou_threshold for p in said):
+        if not any(p.name == t.name and overlap(t.bbox, p.bbox) >= iou_threshold for p in said):
             rows.append({"image": image, "claim": "omitted", "about": t.name, "supported": 0, "error": "omission"})
     return rows
 
