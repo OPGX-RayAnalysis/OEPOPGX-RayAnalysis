@@ -10,7 +10,7 @@ Build the shared pieces the team waits on first, then start the hallucination lo
   real tooth is found with the right number and no extra tooth is claimed) in `score.json` and the printout;
   `score_preds.csv` (one row per predicted tooth: image, fdi, confidence, matched, correct) for calibration.
 - **2.16 DENTEX findings data + scorer.** `dentex_findings_v1.zip` on Drive `data/` (disease subset split
-  90/10 train/val + the official 250 test images, 4 classes), `docs/datasets/dentex_findings.md` (with class
+  70/15/15 train/val/test, 4 classes, plus `test_official`: the released official test images, 3 classes), `docs/datasets/dentex_findings.md` (with class
   counts), `scripts/score_findings.py` (per-class precision, recall, F1 at IoU 0.5 with 95% CI;
   `score_findings.json`, `score_findings_images.csv`; `--merge-caries` counts deep caries as caries; classes matched by name, so any findings data.yaml works),
   and `compare_scores.py --findings` for paired comparisons.

@@ -10,7 +10,8 @@ images with a 95% CI, plain vs CLAHE compared, a seed check, and a score on outs
 ## Depends on Kavya's work
 - **2.6 Diagnosis detector** (caries, deep caries, periapical lesion, impacted tooth) needs Kavya's
   `dentex_findings_v1.zip` and `scripts/score_findings.py` (task 2.16). Train plain and CLAHE, pick on
-  **val**, score the winner on **test** (the official 250 DENTEX test images), then 2 more seeds of the winner.
+  **val**, score the winner on **test** (106 held-out DENTEX images) and on `test_official` with `--merge-caries`
+  (the official DENTEX images; different label scheme, an extra number only), then 2 more seeds of the winner.
 - **Outside test** of the 2.6 winner on OralXrays-9 needs Kavya's `oralxrays_yolo_v1.zip` (task 2.17).
 
 ## Depends on Krisha's work

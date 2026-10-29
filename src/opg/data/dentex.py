@@ -27,15 +27,22 @@ DIAGNOSIS_MAP = {
     "Deep Caries": "deep_caries",
     "Periapical Lesion": "periapical_lesion",
 }
-# Turkish labels in the official test set. Run scripts/dentex_to_yolo.py --list-test-labels
-# after downloading to confirm this covers every label actually present.
+# Labels in the released official test set (Hugging Face test_data.zip, checked 29 Oct 2026).
+# They are NOT the challenge's 4 classes: one whole-tooth polygon per tooth with a
+# treatment-need category, and no "deep caries". Only these three map onto our classes;
+# the rest are known and dropped (see docs/datasets/dentex_findings.md).
+# scripts/dentex_to_yolo.py --list-test-labels prints the counts.
 TURKISH_DIAGNOSIS_MAP = {
-    "çürük": "caries",
-    "derin çürük": "deep_caries",
-    "gömülü": "impacted",
-    "gömülü diş": "impacted",
-    "periapikal lezyon": "periapical_lesion",
-    "lezyon": "periapical_lesion",
+    "çürük": "caries",  # 1, caries (deep and shallow not told apart: score with --merge-caries)
+    "gömülü": "impacted",  # 6, impacted
+    "lezyon": "periapical_lesion",  # 7, lesion
+}
+TURKISH_DROPPED = {
+    "saglam",  # 0, healthy
+    "küretaj",  # 2, curettage (periodontal)
+    "kanal",  # 3, root canal
+    "çekim",  # 5, extraction
+    "kırık",  # 8, fracture
 }
 
 TEETH_CLASSES = [str(f) for f in ALL_PERMANENT]  # "11" ... "48", 32 classes
@@ -85,7 +92,7 @@ def load_labelme_test(label_dir: Path, images_dir: Path, strict: bool = True) ->
         for shape in d["shapes"]:
             name, fdi = parse_test_label(shape["label"])
             if name not in TURKISH_DIAGNOSIS_MAP:
-                if strict:
+                if strict and name not in TURKISH_DROPPED:
                     raise KeyError(f"Unknown test label '{shape['label']}' in {path.name}; extend TURKISH_DIAGNOSIS_MAP")
                 continue
             xs = [p[0] for p in shape["points"]]

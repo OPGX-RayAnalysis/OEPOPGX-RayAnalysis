@@ -26,6 +26,26 @@ def test_labelme_test_label():
     assert D.parse_test_label("1-çürük-33") == ("çürük", 33)
 
 
+def test_official_test_keeps_three_classes_and_drops_known_extras(tmp_path):
+    def shape(label):
+        return {"label": label, "points": [[10, 20], [30, 20], [30, 60], [10, 60]]}
+
+    labels = ["1-çürük-26", "3-kanal-36", "6-gömülü-38", "7-lezyon-46", "0-saglam-11", "8-kırık-21"]
+    doc = {"imagePath": "test_0.png", "imageWidth": 100, "imageHeight": 100, "shapes": [shape(x) for x in labels]}
+    (tmp_path / "test_0.json").write_text(json.dumps(doc), encoding="utf-8")
+    [record] = D.load_labelme_test(tmp_path, tmp_path)
+    assert [(b["fdi"], b["label"]) for b in record["boxes"]] == [(26, "caries"), (38, "impacted"), (46, "periapical_lesion")]
+    assert record["boxes"][0]["bbox"] == [10, 20, 30, 60]
+
+    doc["shapes"].append(shape("4-dolgu-12"))  # a label we have never seen must not pass silently
+    (tmp_path / "test_0.json").write_text(json.dumps(doc), encoding="utf-8")
+    try:
+        D.load_labelme_test(tmp_path, tmp_path)
+        assert False, "unknown label accepted"
+    except KeyError:
+        pass
+
+
 def test_yolo_line_normalised():
     assert D.yolo_line([100, 200, 150, 280], 3, 2000, 1000) == "3 0.062500 0.240000 0.025000 0.080000"
 

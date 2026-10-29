@@ -1,6 +1,6 @@
 # Project context: OPG X-Ray AI
 
-Version 1.10 · 29 Oct 2026 · Owner: Kavya (team lead)
+Version 1.11 · 29 Oct 2026 · Owner: Kavya (team lead)
 
 This file is the shared ground for everyone on the team and for the AI tools we use. Upload it
 (as part of your `context_<name>.md` bundle) before asking an AI for code, so its answers fit
@@ -87,7 +87,9 @@ Task numbers (like 1.11) refer to the team plan and tracker.
   on Drive and Krisha scores it and shares `score.json`/`score.csv` (numbers are fine to share).
 
 - **New datasets for findings (Phase 2).** DENTEX findings (`dentex_findings_v1.zip`, 4 diagnoses:
-  impacted, caries, deep_caries, periapical_lesion; test = the official 250 DENTEX test images).
+  impacted, caries, deep_caries, periapical_lesion; 70/15/15 split of the 705 labelled images, test = 106
+  held-out images; extra split `test_official` = the released official test images, whose labels use a
+  different scheme, so score it only with `--merge-caries`; see `docs/datasets/dentex_findings.md`).
   **Zhou et al. 2024** dual-labelled set (Kaggle; FDI numbers + tooth states: filling, root canal,
   crown, caries, residual root) and **OralXrays-9** (CVPR 2025, the authors' own release; outside test
   for findings). Zhou states no licence. OralXrays-9's authors gave us **written permission
@@ -118,6 +120,7 @@ opg-ai/
     preprocess.py     crop, CLAHE, resize, shift YOLO boxes after a crop
     postprocess.py    anatomy rules: unique numbers, left/right, missing, wisdom teeth
     scoring.py        numbering metrics (used by score_numbering.py)
+    scoring_findings.py  findings metrics (used by score_findings.py)
     associate.py      link findings to teeth
     pipeline.py       image → Findings JSON + annotated image
     report.py         dentist report + patient summary
@@ -143,6 +146,8 @@ python scripts/view_labels.py --data data/yolo/teeth/data.yaml --split test --pr
 python scripts/train_yolo.py --data data/yolo/teeth/data.yaml --name <person>-teeth-v1
 python scripts/score_numbering.py --weights runs/<name>/weights/best.pt --data data/yolo/teeth/data.yaml --split test [--rules]
 python scripts/compare_scores.py runs/<run-a> runs/<run-b> [runs/<run-c> ...]
+python scripts/score_findings.py --weights runs/<name>/weights/best.pt --data data/yolo/findings/data.yaml --split val [--merge-caries]
+python scripts/compare_scores.py --findings runs/<run-a> runs/<run-b>
 python scripts/preprocess_dataset.py --data data/yolo/teeth/data.yaml --out data/yolo/teeth_clahe [--preview 5]
 ```
 
@@ -161,6 +166,11 @@ python scripts/preprocess_dataset.py --data data/yolo/teeth/data.yaml --out data
 - `compare_scores.py` reads those per-image files: for several seeds of one setup it gives mean,
   SD and range; for two setups on the same images it gives the paired difference with its
   interval ("no clear difference" if it contains 0). Report a result as a number with its CI.
+- `score_findings.py` is the same for findings detectors. Headline: **mean F1** over the classes
+  (each class counts the same) with a 95% CI; also per-class precision, recall, F1 and AP50, and pooled
+  numbers. Classes are matched by name, so any findings data.yaml works; `--merge-caries` counts deep
+  caries as caries. Writes `score_findings.json/.csv/_images.csv/_preds.csv`; `compare_scores.py --findings`
+  compares runs.
 - `train_yolo.py --seed N` sets the random seed (default 42, used by every run before 10 Oct).
 - `preprocess_dataset.py` writes a crop + CLAHE copy of a YOLO dataset with the boxes shifted to
   match the crop (`--preview N` saves before/after images). Not needed for numbering (see above).
