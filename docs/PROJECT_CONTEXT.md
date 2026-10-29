@@ -1,6 +1,6 @@
 # Project context: OPG X-Ray AI
 
-Version 1.11 · 29 Oct 2026 · Owner: Kavya (team lead)
+Version 1.12 · 29 Oct 2026 · Owner: Kavya (team lead)
 
 This file is the shared ground for everyone on the team and for the AI tools we use. Upload it
 (as part of your `context_<name>.md` bundle) before asking an AI for code, so its answers fit
@@ -42,6 +42,12 @@ A **claim** is one statement about one tooth (tooth 36 present, 48 missing, 26 h
 against the Findings JSON (did the text invent it?) and against the expert labels (is it true?).
 We also report the four groups used by Balel 2026 (True, False, Missing, Hallucination) so our
 numbers can be compared with that paper.
+The log is `experiments/hallucination_log.csv`, one row per model version per test set. Both scorers
+write a `*_claims.csv`; add the row with `scripts/log_hallucination.py` (rules in `src/opg/claims.py`).
+Numbering: every tooth number is claimed present or missing; errors are invented tooth, wrong number,
+wrong side, negation flip (a real tooth called missing). Findings: every predicted finding is a claim;
+errors are invented finding, wrong finding, severity inflation (deep caries said for caries); missed
+real findings are counted as omissions beside the rate. **A PR that adds a model adds its rows.**
 
 **Results so far:** cropping plus CLAHE does not help numbering (task 1.8: 90.9% numbering
 accuracy with and without, yolo11n, 50 epochs, test split). **Train numbering models on the
@@ -121,6 +127,7 @@ opg-ai/
     postprocess.py    anatomy rules: unique numbers, left/right, missing, wisdom teeth
     scoring.py        numbering metrics (used by score_numbering.py)
     scoring_findings.py  findings metrics (used by score_findings.py)
+    claims.py         claims and hallucination errors (hallucination log, task 2.18)
     associate.py      link findings to teeth
     pipeline.py       image → Findings JSON + annotated image
     report.py         dentist report + patient summary
@@ -130,6 +137,7 @@ opg-ai/
   tests/              pytest suite
   docs/               this file, per-person tracks, dataset cards
   experiments/<name>/ experiment logs and result tables (markdown only)
+  experiments/hallucination_log.csv  the shared hallucination log (task 2.18)
   data/               datasets, git-ignored, comes from Drive
   runs/               training output, git-ignored
 ```
@@ -148,6 +156,7 @@ python scripts/score_numbering.py --weights runs/<name>/weights/best.pt --data d
 python scripts/compare_scores.py runs/<run-a> runs/<run-b> [runs/<run-c> ...]
 python scripts/score_findings.py --weights runs/<name>/weights/best.pt --data data/yolo/findings/data.yaml --split val [--merge-caries]
 python scripts/compare_scores.py --findings runs/<run-a> runs/<run-b>
+python scripts/log_hallucination.py runs/<name>/score_claims.csv --run <name> --test-set "DENTEX teeth test" [--setting "rules on"]
 python scripts/preprocess_dataset.py --data data/yolo/teeth/data.yaml --out data/yolo/teeth_clahe [--preview 5]
 ```
 

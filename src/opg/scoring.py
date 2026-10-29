@@ -25,7 +25,8 @@ raw prediction, and recomputing it 1,000 times is too slow. Rows saved before 2.
 
 It also keeps one row per scored prediction (Scorer.preds, PRED_FIELDS): its confidence,
 whether it matched a real tooth, and whether the number was right. Calibration (task 2.14)
-and the hallucination log (task 2.18) are built from these rows.
+is built from these rows. Scorer.claims holds the "present" / "missing" claim per tooth
+number for the hallucination log (task 2.18, see claims.py).
 """
 
 from __future__ import annotations
@@ -35,6 +36,7 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 
 from . import fdi as F
+from .claims import numbering_claims
 from .geometry import iou
 
 
@@ -107,6 +109,7 @@ class Scorer:
     ap_hits: dict = field(default_factory=lambda: defaultdict(list))
     images: list = field(default_factory=list)  # one row of counts per image, see IMAGE_FIELDS
     preds: list = field(default_factory=list)  # one row per scored prediction, see PRED_FIELDS
+    claims: list = field(default_factory=list)  # one row per claim, see claims.CLAIM_FIELDS (task 2.18)
     n_images: int = 0
 
     def add(self, truth: list[Tooth], pred: list[Tooth], pred_all: list[Tooth] | None = None, name: str = "") -> None:
@@ -148,6 +151,7 @@ class Scorer:
             image[f"missing_{k}"] = v
         image["extra"] = len(pred) - len(pairs)
         self.images.append(image)
+        self.claims += numbering_claims(truth, pred, image["image"], self.iou_threshold)
 
         self._add_ap(truth, pred if pred_all is None else pred_all)
 
