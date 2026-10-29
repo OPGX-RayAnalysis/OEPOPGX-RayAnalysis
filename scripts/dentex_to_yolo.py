@@ -6,7 +6,11 @@
                         Images with a tooth number labelled twice are left out after the split
                         (16 images; listed in docs/datasets/dentex.md and excluded_teeth.txt)
     data/yolo/findings  4 diagnosis classes, from the disease subset (abnormal teeth only)
-                        split 90% train / 10% val, plus the official 250-image test set
+                        split 70% train / 15% val / 15% test (test = findings test set, task 2.16),
+                        plus test_official: the released 250-image official test set, whose labels
+                        use a different scheme, so only caries / impacted / periapical lesion are kept
+                        and images that also appear in the disease subset are left out
+                        (excluded_findings.txt; see docs/datasets/dentex_findings.md)
 
 Usage:
     python scripts/dentex_to_yolo.py
@@ -22,6 +26,15 @@ from collections import Counter
 from pathlib import Path
 
 from opg.data import dentex as D
+
+
+def image_hash(path: Path) -> bytes:
+    """Tiny brightness fingerprint (16 x 8, above / below the mean): the same X-ray saved twice
+    gets the same fingerprint, different X-rays almost never do."""
+    import cv2
+
+    small = cv2.resize(cv2.imread(str(path), cv2.IMREAD_GRAYSCALE), (16, 8), interpolation=cv2.INTER_AREA)
+    return (small > small.mean()).tobytes()
 
 
 def main() -> None:
@@ -43,7 +56,8 @@ def main() -> None:
             for shape in json.loads(p.read_text(encoding="utf-8"))["shapes"]
         )
         for name, count in labels.most_common():
-            mapped = D.TURKISH_DIAGNOSIS_MAP.get(name.strip().lower(), "!! NOT MAPPED")
+            key = name.strip().lower()
+            mapped = D.TURKISH_DIAGNOSIS_MAP.get(key, "dropped" if key in D.TURKISH_DROPPED else "!! NOT MAPPED")
             print(f"{count:5d}  {name!r:30} -> {mapped}")
         return
 
@@ -65,10 +79,22 @@ def main() -> None:
         records = D.load_coco_hierarchical(
             disease_dir / "train_quadrant_enumeration_disease.json", disease_dir / "xrays"
         )
-        splits = D.split_records(records, {"train": 0.9, "val": 0.1}, args.seed)
+        splits = D.split_records(records, {"train": 0.70, "val": 0.15, "test": 0.15}, args.seed)
+        excluded = []
         if test_dir.exists():
-            splits["test"] = D.load_labelme_test(test_dir / "label", test_dir / "input")
+            official = D.load_labelme_test(test_dir / "label", test_dir / "input")
+            seen = {image_hash(r["path"]): r["file"] for r in records}
+            kept = []
+            for r in official:
+                twin = seen.get(image_hash(r["path"]))
+                if twin:
+                    excluded.append(f"test_official\t{r['file']}\tsame image as {twin}\n")
+                else:
+                    kept.append(r)
+            splits["test_official"] = kept
         path = D.write_yolo(splits, args.out / "findings", D.FINDING_CLASSES, "label")
+        (args.out / "findings" / "excluded_findings.txt").write_text("".join(excluded), encoding="utf-8")
+        print(f"findings: left out {len(excluded)} official test images also in the disease subset")
         print(f"findings: {', '.join(f'{k}={len(v)}' for k, v in splits.items())} -> {path}")
     else:
         print(f"skip findings: {disease_dir} not found")

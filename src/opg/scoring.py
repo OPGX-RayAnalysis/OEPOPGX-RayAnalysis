@@ -80,6 +80,23 @@ def average_precision(hits: list[tuple[float, bool]], n_truth: int) -> float:
     return ap
 
 
+def ap_hits(truths: list, preds: list, iou_threshold: float = 0.5) -> list[tuple[float, bool]]:
+    """(confidence, is_true_positive) for each prediction of ONE class, for average_precision.
+    Standard detection matching: confident predictions claim truths first."""
+    claimed, hits = set(), []
+    for p in sorted(preds, key=lambda p: -p.conf):
+        best, best_i = 0.0, None
+        for i, t in enumerate(truths):
+            overlap = iou(t.bbox, p.bbox)
+            if i not in claimed and overlap > best:
+                best, best_i = overlap, i
+        ok = best_i is not None and best >= iou_threshold
+        if ok:
+            claimed.add(best_i)
+        hits.append((p.conf, ok))
+    return hits
+
+
 @dataclass
 class Scorer:
     """Feed it images one at a time with add(), then call result()."""
@@ -135,20 +152,10 @@ class Scorer:
         self._add_ap(truth, pred if pred_all is None else pred_all)
 
     def _add_ap(self, truth: list[Tooth], pred: list[Tooth]) -> None:
-        # Standard detection matching per class: confident predictions claim truths first.
         for tooth in {t.fdi for t in truth} | {p.fdi for p in pred}:
-            truths = [t for t in truth if t.fdi == tooth]
-            claimed = set()
-            for p in sorted((p for p in pred if p.fdi == tooth), key=lambda p: -p.conf):
-                best, best_i = 0.0, None
-                for i, t in enumerate(truths):
-                    overlap = iou(t.bbox, p.bbox)
-                    if i not in claimed and overlap > best:
-                        best, best_i = overlap, i
-                ok = best_i is not None and best >= self.iou_threshold
-                if ok:
-                    claimed.add(best_i)
-                self.ap_hits[tooth].append((p.conf, ok))
+            self.ap_hits[tooth] += ap_hits(
+                [t for t in truth if t.fdi == tooth], [p for p in pred if p.fdi == tooth], self.iou_threshold
+            )
 
     def result(self) -> dict:
         rows = []

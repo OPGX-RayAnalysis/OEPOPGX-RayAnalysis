@@ -155,7 +155,7 @@ def test_compare_scores_reads_old_and_new_images_csv(tmp_path):
             writer = csv.DictWriter(f, fieldnames=fields)
             writer.writeheader()
             writer.writerow({k: v for k, v in image_row("a.png", 10, 10).items() if k in fields})
-    _, old_rows = compare_scores.read_images(tmp_path / "old", rules=False)
-    _, new_rows = compare_scores.read_images(tmp_path / "new", rules=False)
+    _, old_rows = compare_scores.read_images(tmp_path / "old", "score")
+    _, new_rows = compare_scores.read_images(tmp_path / "new", "score")
     assert summarize(old_rows)["whole_scan_accuracy"] is None
     assert summarize(new_rows)["whole_scan_accuracy"] == 1.0
