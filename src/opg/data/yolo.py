@@ -82,6 +82,16 @@ def split_images(data: dict, split: str) -> list[Path]:
     return sorted(p for p in folder.iterdir() if p.suffix.lower() in IMAGE_SUFFIXES)
 
 
+def fingerprint(path: Path) -> bytes:
+    """Tiny brightness fingerprint (16 x 8, above / below the mean, 128 bytes of 0/1): the same
+    X-ray saved twice, even resized, gets (almost) the same fingerprint; different X-rays differ
+    in 6+ of the 128 places. Used to find the same image in two datasets."""
+    import cv2
+
+    small = cv2.resize(cv2.imread(str(path), cv2.IMREAD_GRAYSCALE), (16, 8), interpolation=cv2.INTER_AREA)
+    return (small > small.mean()).tobytes()
+
+
 def label_path(image_path: Path) -> Path:
     """images/<split>/x.png -> labels/<split>/x.txt (the Ultralytics convention)."""
     parts = list(image_path.parts)

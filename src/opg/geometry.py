@@ -17,6 +17,13 @@ def iou(a, b) -> float:
     return inter / union if union > 0 else 0.0
 
 
+def cover(truth, pred) -> float:
+    """Share of the TRUE box inside the predicted box (1.0 = fully covered). For datasets that
+    box a lesion while our model boxes the whole tooth (OralXrays-9, task 2.17)."""
+    a = area(truth)
+    return intersection(truth, pred) / a if a > 0 else 0.0
+
+
 def center_x(b) -> float:
     return (b[0] + b[2]) / 2
 

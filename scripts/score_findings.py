@@ -11,8 +11,12 @@ Usage:
 Classes are matched by name, so any findings data.yaml works. Only classes both the model and
 the data.yaml know are scored; the rest are listed and left out.
 --merge-caries counts deep caries as caries (in the labels and the predictions).
+--match cover: a prediction matches if it covers at least half of the real box, instead of IoU.
+For datasets that box the lesion while our model boxes the whole tooth (OralXrays-9): score
+those with both rules and report both (docs/datasets/oralxrays.md).
 --skip leaves out the images named in a text file (one file name per line).
-Writes, next to the weights' run folder or into --out (score_findings_merged.* with --merge-caries):
+Writes, next to the weights' run folder or into --out (score_findings_merged.* with --merge-caries,
+_cover added with --match cover; compare_scores.py --findings takes any of these .json files):
     score_findings.json         all numbers, plus 95% bootstrap intervals (ci95)
     score_findings.csv          per class: truth, tp, fp, fn, precision, recall, F1, AP50
     score_findings_images.csv   per image per class, for compare_scores.py --findings
@@ -69,6 +73,7 @@ def main() -> None:
     parser.add_argument("--merge-caries", action="store_true", help="count deep caries as caries")
     parser.add_argument("--conf", type=float, default=0.25, help="confidence threshold for counting a finding")
     parser.add_argument("--iou", type=float, default=0.5, help="overlap needed to match a real finding")
+    parser.add_argument("--match", default="iou", choices=["iou", "cover"], help="how overlap is measured")
     parser.add_argument("--imgsz", type=int, default=1024)
     parser.add_argument("--device", default=None, help="e.g. 0 for the first GPU, cpu for CPU")
     parser.add_argument("--out", type=Path, default=None)
@@ -101,7 +106,7 @@ def main() -> None:
         if left_out:
             print(f"Not scored, only the {what} has: {', '.join(left_out)}")
 
-    scorer = FindingScorer(classes, iou_threshold=args.iou, merge=merge)
+    scorer = FindingScorer(classes, iou_threshold=args.iou, merge=merge, match_rule=args.match)
     for i, path in enumerate(images, 1):
         h, w = cv2.imread(str(path), cv2.IMREAD_GRAYSCALE).shape[:2]
         truth = [Finding(normalize(b.name), list(b.xyxy)) for b in Y.read_labels(path, data["names"], w, h)]
@@ -119,6 +124,7 @@ def main() -> None:
         "classes": classes,
         "conf": args.conf,
         "iou": args.iou,
+        "match": args.match,
         "imgsz": args.imgsz,
         "skip": str(args.skip) if args.skip else None,
         **scorer.result(),
@@ -128,7 +134,7 @@ def main() -> None:
         score["bootstrap_resamples"] = args.bootstrap
     out = args.out or default_out(args.weights)
     out.mkdir(parents=True, exist_ok=True)
-    stem = "score_findings_merged" if args.merge_caries else "score_findings"
+    stem = ("score_findings_merged" if args.merge_caries else "score_findings") + ("_cover" if args.match == "cover" else "")
     (out / f"{stem}.json").write_text(json.dumps(score, indent=2), encoding="utf-8")
     with open(out / f"{stem}.csv", "w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=["finding", "truth", "tp", "fp", "fn", "precision", "recall", "f1", "ap50"])
@@ -155,7 +161,8 @@ def main() -> None:
 
     ci95 = score.get("ci95", {})
     print(f"\n{args.split}: {score['images']} images, {score['findings']} real findings, "
-          f"deep caries {'merged into caries' if args.merge_caries else 'kept separate'}")
+          f"deep caries {'merged into caries' if args.merge_caries else 'kept separate'}, "
+          f"matched by {'cover' if args.match == 'cover' else 'IoU'}")
     print(f"  {'class':<20}{'truth':>6}{'tp':>6}{'fp':>6}{'fn':>6}{'prec':>8}{'recall':>8}{'F1':>8}   F1 95% CI        AP50")
     for c, row in score["per_class"].items():
         bounds = ci95.get("per_class", {}).get(c, {}).get("f1")

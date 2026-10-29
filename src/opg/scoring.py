@@ -47,10 +47,11 @@ class Tooth:
     conf: float = 1.0
 
 
-def match(truth: list[Tooth], pred: list[Tooth], iou_threshold: float = 0.5) -> list[tuple[int, int]]:
-    """One-to-one (truth index, pred index) pairs, best overlap first, number ignored."""
+def match(truth: list[Tooth], pred: list[Tooth], iou_threshold: float = 0.5, overlap=iou) -> list[tuple[int, int]]:
+    """One-to-one (truth index, pred index) pairs, best overlap first, number ignored.
+    overlap(truth box, pred box): iou by default; geometry.cover for lesion-sized labels."""
     pairs = sorted(
-        ((iou(t.bbox, p.bbox), i, j) for i, t in enumerate(truth) for j, p in enumerate(pred)),
+        ((overlap(t.bbox, p.bbox), i, j) for i, t in enumerate(truth) for j, p in enumerate(pred)),
         reverse=True,
     )
     used_t, used_p, out = set(), set(), []
@@ -82,16 +83,16 @@ def average_precision(hits: list[tuple[float, bool]], n_truth: int) -> float:
     return ap
 
 
-def ap_hits(truths: list, preds: list, iou_threshold: float = 0.5) -> list[tuple[float, bool]]:
+def ap_hits(truths: list, preds: list, iou_threshold: float = 0.5, overlap=iou) -> list[tuple[float, bool]]:
     """(confidence, is_true_positive) for each prediction of ONE class, for average_precision.
     Standard detection matching: confident predictions claim truths first."""
     claimed, hits = set(), []
     for p in sorted(preds, key=lambda p: -p.conf):
         best, best_i = 0.0, None
         for i, t in enumerate(truths):
-            overlap = iou(t.bbox, p.bbox)
-            if i not in claimed and overlap > best:
-                best, best_i = overlap, i
+            o = overlap(t.bbox, p.bbox)
+            if i not in claimed and o > best:
+                best, best_i = o, i
         ok = best_i is not None and best >= iou_threshold
         if ok:
             claimed.add(best_i)

@@ -13,10 +13,13 @@ images with a 95% CI, plain vs CLAHE compared, a seed check, and a score on outs
   **val**, score the winner on **test** (106 held-out DENTEX images) and on `test_official` with `--merge-caries`
   (the official DENTEX images; different label scheme, an extra number only), then 2 more seeds of the winner.
 - **Outside test** of the 2.6 winner on OralXrays-9 needs Kavya's `oralxrays_yolo_v1.zip` (task 2.17).
+  Score with `--merge-caries`, once with the default IoU rule and once with `--match cover`, and report
+  both (it boxes the cavity, our model boxes the tooth: `docs/datasets/oralxrays.md`).
 
 ## Depends on Krisha's work
 - **2.7 Treatment detector** (filling, root canal filling, crown, plus caries and residual root) needs
-  Krisha's `zhou_yolo_v1.zip` (task 2.2). If Kavya finds implants in OralXrays-9, she adds them and posts a new data.yaml.
+  Krisha's `zhou_yolo_v1.zip` (task 2.2). OralXrays-9 has implants (1,913 train boxes), but it boxes the restoration itself, not the tooth:
+  pick one box convention before mixing it with Zhou (decide with Kavya).
 
 ## Files you may touch
 - `experiments/shubh/FINDINGS.md` (create)

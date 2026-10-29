@@ -136,3 +136,22 @@ def test_compare_scores_findings_round_trip(tmp_path, capsys):
     out = capsys.readouterr().out
     assert "b minus a (paired, same 6 images)" in out
     assert "impacted F1         +100.0 points" in out
+
+
+def test_cover_rule_matches_a_lesion_box_inside_the_tooth_box():
+    lesion = Finding("caries", [10, 10, 20, 20])  # small box: the cavity only
+    tooth = Finding("caries", [0, 0, 30, 60], 0.9)  # our model boxes the whole tooth
+    iou_scorer, cover_scorer = FindingScorer(["caries"]), FindingScorer(["caries"], match_rule="cover")
+    iou_scorer.add([lesion], [tooth])
+    cover_scorer.add([lesion], [tooth])
+    assert iou_scorer.result()["per_class"]["caries"]["tp"] == 0  # IoU 100/1800: a "miss"
+    assert cover_scorer.result()["per_class"]["caries"]["tp"] == 1
+    assert cover_scorer.claims[0]["supported"] == 1
+
+
+def test_cover_rule_is_still_one_to_one():
+    lesions = [Finding("caries", [10, 10, 20, 20]), Finding("caries", [10, 30, 20, 40])]
+    s = FindingScorer(["caries"], match_rule="cover")
+    s.add(lesions, [Finding("caries", [0, 0, 30, 60])])  # one big box over both
+    r = s.result()["per_class"]["caries"]
+    assert (r["tp"], r["fn"]) == (1, 1)

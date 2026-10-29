@@ -1,6 +1,6 @@
 # Project context: OPG X-Ray AI
 
-Version 1.12 · 29 Oct 2026 · Owner: Kavya (team lead)
+Version 1.13 · 30 Oct 2026 · Owner: Kavya (team lead)
 
 This file is the shared ground for everyone on the team and for the AI tools we use. Upload it
 (as part of your `context_<name>.md` bundle) before asking an AI for code, so its answers fit
@@ -97,8 +97,11 @@ Task numbers (like 1.11) refer to the team plan and tracker.
   held-out images; extra split `test_official` = the released official test images, whose labels use a
   different scheme, so score it only with `--merge-caries`; see `docs/datasets/dentex_findings.md`).
   **Zhou et al. 2024** dual-labelled set (Kaggle; FDI numbers + tooth states: filling, root canal,
-  crown, caries, residual root) and **OralXrays-9** (CVPR 2025, the authors' own release; outside test
-  for findings). Zhou states no licence. OralXrays-9's authors gave us **written permission
+  crown, caries, residual root) and **OralXrays-9** (CVPR 2025, the authors' own release;
+  `oralxrays_yolo_v1.zip`: 7 of its 9 classes mapped onto ours, test = their 2,688-image val2017 split,
+  outside test for findings, treatments and implants for 2.7; card `docs/datasets/oralxrays.md`).
+  OralXrays-9 boxes the lesion itself, not the whole tooth: score it with `--match iou` (default) AND
+  `--match cover` and report both. Zhou states no licence. OralXrays-9's authors gave us **written permission
   (24 Oct 2026)** for training, evaluation and publication, provided we cite their CVPR 2025 paper,
   keep the official split when comparing with their results, keep its test images out of training and
   validation when it is our outside test, and never redistribute the images or annotations. For both:
@@ -133,6 +136,7 @@ opg-ai/
     report.py         dentist report + patient summary
     data/dentex.py    DENTEX readers, YOLO writer, splits
     data/yolo.py      read any YOLO dataset (data.yaml, images, labels)
+    data/oralxrays.py OralXrays-9 reader and class mapping
   scripts/            command-line tools (download, convert, train, score, view, analyze)
   tests/              pytest suite
   docs/               this file, per-person tracks, dataset cards

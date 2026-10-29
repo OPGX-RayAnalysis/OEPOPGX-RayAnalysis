@@ -88,6 +88,7 @@ would really be 28. `train_yolo.py` turns flips off.
 | `src/opg/report.py` | Template dentist report + patient summary (the grounded baseline) | 3.3 |
 | `src/opg/data/dentex.py` | DENTEX readers, YOLO writer, splits | 1.6, 2.2 |
 | `src/opg/data/yolo.py` | Read any YOLO dataset (data.yaml, images, labels) | 1.11, 1.12 |
+| `src/opg/data/oralxrays.py`, `scripts/oralxrays_to_yolo.py` | OralXrays-9 converter (class mapping, DENTEX overlap check) | 2.17 |
 | `scripts/view_labels.py` | Draw labels (and predictions) with tooth numbers, for spot-checks | 1.12 |
 | `src/opg/scoring.py`, `scripts/score_numbering.py` | Numbering accuracy, per-tooth table, missing-tooth F1, mAP50, 95% bootstrap CI | 1.11, 2.13 |
 | `scripts/compare_scores.py` | Mean and spread over seeds, paired A-vs-B difference, subsets | 2.13 |

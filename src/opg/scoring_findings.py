@@ -18,6 +18,11 @@ overlap (IoU >= 0.5, best overlap first, scoring.match). Then, per class:
                 however rare)
     pooled      precision, recall and F1 over all findings together (common classes dominate)
 
+match_rule="cover" (--match cover) matches by how much of the REAL box lies inside the predicted
+box (geometry.cover >= 0.5) instead of IoU: for datasets that box the lesion while our model
+boxes the whole tooth (OralXrays-9), where IoU calls even a right tooth a miss. It asks "did
+the model flag the tooth that has it?" Still one-to-one. Report it beside the IoU score.
+
 A prediction with the right box but the wrong class counts twice: an fp for the class it
 said and an fn for the class it should have said. `merge` renames classes before anything
 else, e.g. {"deep_caries": "caries"} (--merge-caries) when deep vs shallow is not the question.
@@ -37,12 +42,14 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 
 from .claims import findings_claims
+from .geometry import cover, iou
 from .scoring import _percentiles, _ratio, ap_hits, average_precision, match
 
 FINDING_IMAGE_FIELDS = ["image", "finding", "truth", "tp", "fp", "fn"]
 FINDING_PRED_FIELDS = ["image", "finding", "confidence", "matched"]
 PRF = ["precision", "recall", "f1"]
 MERGE_CARIES = {"deep_caries": "caries"}
+MATCH_RULES = {"iou": iou, "cover": cover}
 
 
 def normalize(name: str) -> str:
@@ -65,6 +72,7 @@ class FindingScorer:
     classes: list[str]
     iou_threshold: float = 0.5
     merge: dict = field(default_factory=dict)
+    match_rule: str = "iou"  # or "cover", see the module docstring
     images: list = field(default_factory=list)  # one row per image per class, see FINDING_IMAGE_FIELDS
     preds: list = field(default_factory=list)  # one row per scored prediction, see FINDING_PRED_FIELDS
     claims: list = field(default_factory=list)  # one row per claim, see claims.CLAIM_FIELDS (task 2.18)
@@ -84,18 +92,19 @@ class FindingScorer:
         name = name or str(self.n_images)
         truth, pred = self._keep(truth), self._keep(pred)
         pred_all = pred if pred_all is None else self._keep(pred_all)
-        self.claims += findings_claims(truth, pred, name, self.iou_threshold)
+        overlap = MATCH_RULES[self.match_rule]
+        self.claims += findings_claims(truth, pred, name, self.iou_threshold, overlap)
         for c in self.classes:
             t = [f for f in truth if f.name == c]
             p = [f for f in pred if f.name == c]
-            matched = {j for _, j in match(t, p, self.iou_threshold)}
+            matched = {j for _, j in match(t, p, self.iou_threshold, overlap)}
             for j, f in enumerate(p):
                 self.preds.append({"image": name, "finding": c, "confidence": round(f.conf, 4), "matched": int(j in matched)})
             self.images.append({
                 "image": name, "finding": c, "truth": len(t),
                 "tp": len(matched), "fp": len(p) - len(matched), "fn": len(t) - len(matched),
             })
-            self.hits[c] += ap_hits(t, [f for f in pred_all if f.name == c], self.iou_threshold)
+            self.hits[c] += ap_hits(t, [f for f in pred_all if f.name == c], self.iou_threshold, overlap)
 
     def result(self) -> dict:
         s = summarize_findings(self.images)
