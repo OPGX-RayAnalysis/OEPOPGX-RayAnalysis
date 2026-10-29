@@ -2,14 +2,15 @@
 
 Each argument is a run folder holding score.json + score_images.csv (or the score.json
 itself). Everything is recomputed from the per-image file, so runs scored before the
-bootstrap was added must be scored again first.
+bootstrap was added must be scored again first. Runs scored before task 2.15 still load,
+but show whole-scan accuracy as n/a until they are scored again.
 
 Usage:
     python scripts/compare_scores.py runs/yash-teeth-v1 runs/yash-teeth-v1-seed1 runs/yash-teeth-v1-seed2
     python scripts/compare_scores.py runs/shubh-plain-v1 runs/shubh-clahe-v1
     python scripts/compare_scores.py runs/tufts-v1 --skip data/yolo/tufts_test/mixed_dentition.txt
 
-Prints, for each run, the four numbers with a 95% bootstrap interval. With 2+ runs it adds
+Prints, for each run, the five numbers with a 95% bootstrap interval. With 2+ runs it adds
 the mean, SD and range across them (for seeds) and, for each run after the first, the
 paired difference from the first with its interval: if the interval contains 0, the two
 runs are not shown to differ on these images.
@@ -29,6 +30,7 @@ LABELS = {
     "accuracy_if_found": "accuracy if found",
     "detection_rate": "detection rate",
     "missing_tooth_f1": "missing-tooth F1",
+    "whole_scan_accuracy": "whole-scan accuracy",
 }
 
 
