@@ -24,7 +24,7 @@ treatments, and check whether the model's confidence can be trusted (calibration
 - **2.19 (part 1 again)** after 2.15: re-score v1 on Tufts so the files include whole-scan accuracy.
 
 ## Depends on Yash's work
-- **2.19 (part 2)** Score Yash's tuned model (2.4) on Tufts the same way, and compare it with v1.
+- **2.19 (part 2)** Dropped (1 Nov): 2.4 kept v1, so there is no new numbering model to score. Your v1 Tufts score is final.
 
 ## Files you may touch
 - `src/opg/data/zhou.py`, `scripts/zhou_to_yolo.py`, `tests/test_zhou.py`, `docs/datasets/zhou.md`

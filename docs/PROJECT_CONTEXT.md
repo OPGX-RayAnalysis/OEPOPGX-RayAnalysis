@@ -1,6 +1,6 @@
 # Project context: OPG X-Ray AI
 
-Version 1.13 · 30 Oct 2026 · Owner: Kavya (team lead)
+Version 1.14 · 1 Nov 2026 · Owner: Kavya (team lead)
 
 This file is the shared ground for everyone on the team and for the AI tools we use. Upload it
 (as part of your `context_<name>.md` bundle) before asking an AI for code, so its answers fit
@@ -55,7 +55,13 @@ plain images** (`data/yolo/teeth/`). Details: `experiments/shubh/RESULTS.md`.
 v1 numbering model (task 1.7): yolo11s, 100 epochs (early stop at 69), **94.4%** numbering accuracy
 on the test split (2,533 of 2,682 teeth), 95% CI 92.5% to 96.0%; with anatomy rules on: 94.3%.
 Seed check (task 2.13): seeds 42, 1, 2 give a mean of 94.2% (SD 0.3 points, range 93.9% to 94.4%).
-This is the number to beat in 2.4. Details: `experiments/yash/EXPERIMENTS.md`.
+**v1 is the frozen numbering model** (task 2.4): neither yolo11m at 1024 px (val 91.0% vs 92.9%, clearly worse)
+nor yolo11s at 1280 px (93.4%, no clear gain) beat it on val. Use `runs/yash-teeth-v1-3` weights at 1024 px.
+Details: `experiments/yash/EXPERIMENTS.md`.
+Diagnosis detector (task 2.6): yolo11s, 100 epochs, plain images (CLAHE: no clear F1 gain on val and 10.5 points
+more unsupported claims). DENTEX findings test: mean F1 43.7% (95% CI 38.7% to 48.8%); seeds 42, 1, 2 mean 46.1%
+(SD 4.6 points). Impacted ~85% F1; caries ~40%; periapical lesion weak (only 25 in test). Details:
+`experiments/shubh/FINDINGS.md`.
 
 ## 2. Team
 
