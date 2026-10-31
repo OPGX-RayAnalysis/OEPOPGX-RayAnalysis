@@ -11,6 +11,7 @@ Freeze the numbering model for the rest of the system: the best setting we can f
 - **2.4 Tune numbering.** Train yolo11m (1024 px) and yolo11s at 1280 px. Pick the winner on the **val**
   split against v1 (`compare_scores.py`), then score only the winner on **test**, with and without `--rules`.
   Upload the winner to Drive `weights/<run>/` and tell Krisha (she scores it on Tufts).
+  **Done 31 Oct: v1 stays** (no clear gain on val). Use v1 (`runs/yash-teeth-v1-3`, 1024 px) for 2.5.
 
 ## Depends on Kavya's work
 - **2.5 Molar-only anatomy rules** (start after 2.15 is merged, because you both edit `score_numbering.py`). Phase 1 showed the rules fix wisdom teeth but hurt premolars.
