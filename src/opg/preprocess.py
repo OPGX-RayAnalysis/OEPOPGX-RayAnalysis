@@ -26,12 +26,16 @@ def clahe(img: np.ndarray, clip_limit: float = 2.0, tile: int = 8) -> np.ndarray
 
 def crop_black_border(img: np.ndarray, threshold: int = 10) -> tuple[np.ndarray, tuple[int, int]]:
     """Remove uniform dark borders. Returns the crop and its (x, y) offset in the original."""
+    # Row/column any() instead of every bright pixel: a full OPG otherwise builds a
+    # multi-million-row coordinate array and can run out of memory.
     mask = img > threshold
-    ys, xs = np.where(mask)
-    if len(xs) == 0:
+    rows = np.flatnonzero(mask.any(axis=1))
+    cols = np.flatnonzero(mask.any(axis=0))
+    if len(cols) == 0:
         return img, (0, 0)
-    x1, x2, y1, y2 = xs.min(), xs.max() + 1, ys.min(), ys.max() + 1
-    return img[y1:y2, x1:x2], (int(x1), int(y1))
+    y1, y2 = int(rows[0]), int(rows[-1]) + 1
+    x1, x2 = int(cols[0]), int(cols[-1]) + 1
+    return img[y1:y2, x1:x2], (x1, y1)
 
 
 def resize_long_side(img: np.ndarray, long_side: int = 1024) -> tuple[np.ndarray, float]:
