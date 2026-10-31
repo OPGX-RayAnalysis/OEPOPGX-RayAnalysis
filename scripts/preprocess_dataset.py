@@ -94,9 +94,12 @@ def main() -> None:
     args = parser.parse_args()
 
     src = load_data_yaml(args.data)
-    splits = [name for name in ("train", "val", "test") if name in src]
+    # train/val/test first, then any extra folder split (DENTEX findings has test_official).
+    known = [name for name in ("train", "val", "test") if name in src]
+    extra = [name for name in src if name not in known and name not in ("names", "root", "path") and str(src[name]).startswith("images/")]
+    splits = known + extra
     if not splits:
-        raise SystemExit("data.yaml has no train/val/test split")
+        raise SystemExit("data.yaml has no image splits")
 
     preview_left = args.preview
     for split in splits:
