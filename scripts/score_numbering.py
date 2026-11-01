@@ -57,6 +57,7 @@ def main() -> None:
     parser.add_argument("--data", required=True, help="path to data.yaml")
     parser.add_argument("--split", default="test")
     parser.add_argument("--rules", action="store_true", help="apply anatomy rules before scoring")
+    parser.add_argument("--molars-only", action="store_true", help="apply anatomy rules only to molars")
     parser.add_argument("--conf", type=float, default=0.25, help="confidence threshold for counting a tooth")
     parser.add_argument("--iou", type=float, default=0.5, help="overlap needed to match a real tooth")
     parser.add_argument("--imgsz", type=int, default=1024)
@@ -65,6 +66,9 @@ def main() -> None:
     parser.add_argument("--skip", type=Path, default=None, help="text file of image names to leave out")
     parser.add_argument("--bootstrap", type=int, default=1000, help="resamples for the 95%% interval, 0 = none")
     args = parser.parse_args()
+
+    if args.molars_only and not args.rules:
+        parser.error("--molars-only requires --rules")
 
     try:
         from ultralytics import YOLO
@@ -88,8 +92,12 @@ def main() -> None:
         result = model.predict(str(path), conf=MAP_CONF, imgsz=args.imgsz, device=args.device, verbose=False)[0]
         pred_all = to_teeth(result)
         pred = [p for p in pred_all if p.conf >= args.conf]
+
         if args.rules:
-            fixed = apply_anatomy_rules([RawTooth(p.fdi, p.bbox, p.conf) for p in pred])
+            fixed = apply_anatomy_rules(
+                [RawTooth(p.fdi, p.bbox, p.conf) for p in pred],
+                molars_only=args.molars_only,
+            )
             pred = [Tooth(t.fdi, t.bbox, t.confidence) for t in fixed]
         scorer.add(truth, pred, pred_all, name=path.name)
         if i % 10 == 0 or i == len(images):
@@ -111,7 +119,13 @@ def main() -> None:
         score["bootstrap_resamples"] = args.bootstrap
     out = args.out or default_out(args.weights)
     out.mkdir(parents=True, exist_ok=True)
-    stem = "score_rules" if args.rules else "score"
+    if args.molars_only:
+        stem = "score_rules_molars"
+    elif args.rules:
+        stem = "score_rules"
+    else:
+        stem = "score"
+
     (out / f"{stem}.json").write_text(json.dumps(score, indent=2), encoding="utf-8")
     with open(out / f"{stem}.csv", "w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=["fdi", "count", "detected", "correct", "accuracy"])

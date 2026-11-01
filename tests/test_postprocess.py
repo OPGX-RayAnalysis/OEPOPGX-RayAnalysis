@@ -73,3 +73,52 @@ def test_findings_attach_to_overlapping_tooth_and_impacted_wisdom():
     summary = summarize(teeth, unassigned)
     assert summary.wisdom_teeth["18"] == "impacted"
     assert summary.finding_counts == {"impacted": 1, "periapical_lesion": 1}
+
+
+def test_molars_only_preserves_duplicate_premolar_predictions():
+    raw = full_upper()
+    raw[4] = RawTooth(14, raw[4].bbox, 0.4)
+
+    normal = apply_anatomy_rules(raw)
+    molars_only = apply_anatomy_rules(raw, molars_only=True)
+
+    assert fdis(normal).count(14) == 1
+    assert 15 in fdis(normal)
+
+    assert fdis(molars_only).count(14) == 2
+    assert 15 not in fdis(molars_only)
+
+
+def test_molars_only_corrects_duplicate_molar_predictions():
+    raw = full_upper()
+    raw[7] = RawTooth(17, raw[7].bbox, 0.4)
+
+    normal = apply_anatomy_rules(raw)
+    molars_only = apply_anatomy_rules(raw, molars_only=True)
+
+    assert 18 in fdis(normal)
+    assert 18 in fdis(molars_only)
+
+def test_molars_only_restores_dropped_non_molar_but_not_dropped_molar():
+    raw = full_upper()
+
+    # Add a low-confidence extra detection in quadrant 1.
+    extra = RawTooth(15, [375, 300, 425, 420], 0.1)
+    raw.append(extra)
+
+    normal = apply_anatomy_rules(raw)
+    molars_only = apply_anatomy_rules(raw, molars_only=True)
+
+    # Normal rules drop the low-confidence extra detection.
+    assert extra.bbox not in [t.bbox for t in normal]
+
+    # Molar-only restores it because the model predicted a premolar.
+    assert extra.bbox in [t.bbox for t in molars_only]
+
+    # Repeat with the model predicting a molar.
+    raw[-1] = RawTooth(18, extra.bbox, 0.1)
+
+    molars_only_molar = apply_anatomy_rules(raw, molars_only=True)
+
+    # The low-confidence molar remains dropped.
+    assert extra.bbox not in [t.bbox for t in molars_only_molar]
