@@ -1,6 +1,6 @@
 # Project context: OPG X-Ray AI
 
-Version 1.14 · 1 Nov 2026 · Owner: Kavya (team lead)
+Version 1.15 · 4 Nov 2026 · Owner: Kavya (team lead)
 
 This file is the shared ground for everyone on the team and for the AI tools we use. Upload it
 (as part of your `context_<name>.md` bundle) before asking an AI for code, so its answers fit
@@ -58,6 +58,10 @@ Seed check (task 2.13): seeds 42, 1, 2 give a mean of 94.2% (SD 0.3 points, rang
 **v1 is the frozen numbering model** (task 2.4): neither yolo11m at 1024 px (val 91.0% vs 92.9%, clearly worse)
 nor yolo11s at 1280 px (93.4%, no clear gain) beat it on val. Use `runs/yash-teeth-v1-3` weights at 1024 px.
 Details: `experiments/yash/EXPERIMENTS.md`.
+**Anatomy rules (task 2.5): all rules on** is the reported setting (chosen on val over rules off and
+molar-only: whole-scan accuracy 60.4% vs 35.2% / 46.2%). On test: whole-scan 43.0% vs 26.9% rules off,
+extra teeth 51 vs 154, numbering accuracy unchanged (94.3% vs 94.4%), but unsupported claims rise
+6.0% -> 7.1% (+1.0 points, paired CI excludes 0). The gain is mostly duplicate-box removal.
 Diagnosis detector (task 2.6): yolo11s, 100 epochs, plain images (CLAHE: no clear F1 gain on val and 10.5 points
 more unsupported claims). DENTEX findings test: mean F1 43.7% (95% CI 38.7% to 48.8%); seeds 42, 1, 2 mean 46.1%
 (SD 4.6 points). Impacted ~85% F1; caries ~40%; periapical lesion weak (only 25 in test). Details:
@@ -175,7 +179,8 @@ python scripts/preprocess_dataset.py --data data/yolo/teeth/data.yaml --out data
 - `score_numbering.py` is the one fair measure for everyone. Headline number: **numbering
   accuracy** = teeth found with the right number ÷ all real teeth (a match needs box overlap
   IoU ≥ 0.5). It also gives a 32-row per-tooth table, missing-tooth F1 and mAP50, and writes
-  `score.json` and `score.csv` into the run folder. `--rules` applies the anatomy rules first.
+  `score.json` and `score.csv` into the run folder. `--rules` applies the anatomy rules first;
+  `--rules --molars-only` keeps the rules' numbers only for molars (writes `score_rules_molars.*`).
   It also prints a **95% confidence interval** (bootstrap: the test images resampled 1,000 times)
   and writes `score_images.csv` (one row per image). `--skip FILE` leaves out listed images.
   It also gives **whole-scan accuracy** (share of scans where every tooth has the right number and

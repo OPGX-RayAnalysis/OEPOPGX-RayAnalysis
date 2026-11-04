@@ -166,6 +166,7 @@ def apply_anatomy_rules(
 
     return sorted(result, key=lambda t: t.fdi)
 
+
 def summarize(teeth: list[Tooth], unassigned: list[Finding] | None = None) -> Summary:
     present = {t.fdi for t in teeth}
     wisdom = {}

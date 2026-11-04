@@ -235,4 +235,7 @@ However, test evaluation showed trade-offs:
 
 Therefore, anatomy rules improve whole-scan consistency but introduce a measurable hallucination trade-off. They should not be described as improving every evaluation metric.
 
-### Output loc
+### Output locations
+
+* Scores and charts: team Drive `results/yash/Phase 2/results/` (`baseline_score.csv`, `score_rules.csv`, `score_rules_molars.csv`, claims CSVs, comparison PNGs)
+* Weights: unchanged v1, `runs/yash-teeth-v1-3/`

@@ -99,6 +99,7 @@ def test_molars_only_corrects_duplicate_molar_predictions():
     assert 18 in fdis(normal)
     assert 18 in fdis(molars_only)
 
+
 def test_molars_only_restores_dropped_non_molar_but_not_dropped_molar():
     raw = full_upper()
 
