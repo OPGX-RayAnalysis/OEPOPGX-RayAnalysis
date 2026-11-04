@@ -81,7 +81,7 @@ def _assign_positions(pred: list[int], conf: list[float]) -> list[int]:
     return positions
 
 
-def apply_anatomy_rules(raw: list[RawTooth], dedupe_iou: float = 0.6) -> list[Tooth]:
+def _apply_anatomy_rules_all(raw: list[RawTooth], dedupe_iou: float = 0.6) -> list[Tooth]:
     """Turn raw permanent-tooth detections into a consistent, uniquely numbered set."""
     raw = [t for t in raw if not F.is_primary(t.fdi)]
     if not raw:
@@ -115,6 +115,56 @@ def apply_anatomy_rules(raw: list[RawTooth], dedupe_iou: float = 0.6) -> list[To
             )
     return sorted(result, key=lambda t: t.fdi)
 
+
+def apply_anatomy_rules(
+    raw: list[RawTooth],
+    dedupe_iou: float = 0.6,
+    molars_only: bool = False,
+) -> list[Tooth]:
+    """Apply all anatomy rules, or retain rule-based numbering only for molars."""
+    if not molars_only:
+        return _apply_anatomy_rules_all(raw, dedupe_iou)
+
+    rule_results = _apply_anatomy_rules_all(raw, dedupe_iou)
+
+    # Match rule-adjusted detections to their original boxes.
+    by_box = {tuple(t.bbox): t for t in rule_results}
+
+    result: list[Tooth] = []
+
+    for original in raw:
+        if F.is_primary(original.fdi):
+            continue
+
+        adjusted = by_box.get(tuple(original.bbox))
+
+        if adjusted is None:
+            # Rules dropped this detection.
+            # Keep it only if the model originally predicted a non-molar.
+            if original.fdi % 10 not in (6, 7, 8):
+                result.append(
+                    Tooth(
+                        fdi=original.fdi,
+                        bbox=list(original.bbox),
+                        confidence=original.confidence,
+                    )
+                )
+            continue
+
+        if adjusted.fdi % 10 in (6, 7, 8):
+            # The rules assigned a molar number: keep the adjusted result.
+            result.append(adjusted)
+        else:
+            # Otherwise preserve the model's original prediction.
+            result.append(
+                Tooth(
+                    fdi=original.fdi,
+                    bbox=list(original.bbox),
+                    confidence=original.confidence,
+                )
+            )
+
+    return sorted(result, key=lambda t: t.fdi)
 
 def summarize(teeth: list[Tooth], unassigned: list[Finding] | None = None) -> Summary:
     present = {t.fdi for t in teeth}
