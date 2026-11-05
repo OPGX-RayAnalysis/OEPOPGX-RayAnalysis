@@ -20,8 +20,9 @@ Seeds 42, 1, 2 of the winner on test: mean F1 46.1% (SD 4.6 points). Seed 42 was
 
 Official DENTEX images (test_official, --merge-caries, different label protocol): mean F1 45.4% (95% CI 41.9% to 49.2%). Per class: caries 37.1%, periapical_lesion 12.9%, impacted 86.2%. No deep_caries in this split.
 
-Outside test, OralXrays-9 test split (--merge-caries; caries + periapical_lesion):
-- pending: `oralxrays_yolo_v1.zip` is not in the public Drive `data/` folder (that folder lists only `dentex_findings_v1.zip` and `dentex_yolo_v1.zip`) and is not on this machine.
+Outside test, OralXrays-9 test split (2,688 images, --merge-caries; caries + periapical_lesion only). Plain winner, `shubh-findings-plain-v1`:
+- matched by IoU: mean F1 2.9% (95% CI 2.3% to 3.4%), per class: caries 5.7%, periapical_lesion 0.0%
+- matched by cover: mean F1 25.9% (95% CI 24.2% to 27.5%), per class: caries 30.9%, periapical_lesion 21.0%
 
 ## 2.7 Treatments (Zhou dual-labelled set, 500 images)
 
