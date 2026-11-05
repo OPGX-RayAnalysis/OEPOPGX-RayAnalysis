@@ -32,12 +32,14 @@ CHART = [
     (75, "K", "LLE", "lower left primary second molar"),
 
     # Lower right
-(81, "P", "LRA", "lower right primary central incisor"),
-(82, "Q", "LRB", "lower right primary lateral incisor"),
-(83, "R", "LRC", "lower right primary canine"),
-(84, "S", "LRD", "lower right primary first molar"),
-(85, "T", "LRE", "lower right primary second molar"),
+    (81, "P", "LRA", "lower right primary central incisor"),
+    (82, "Q", "LRB", "lower right primary lateral incisor"),
+    (83, "R", "LRC", "lower right primary canine"),
+    (84, "S", "LRD", "lower right primary first molar"),
+    (85, "T", "LRE", "lower right primary second molar"),
 ]
+
+
 def test_chart_has_all_20_teeth():
     assert len(CHART) == 20
     assert len({row[0] for row in CHART}) == 20

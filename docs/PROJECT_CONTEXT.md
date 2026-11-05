@@ -1,6 +1,6 @@
 # Project context: OPG X-Ray AI
 
-Version 1.15 · 4 Nov 2026 · Owner: Kavya (team lead)
+Version 1.16 · 5 Nov 2026 · Owner: Kavya (team lead)
 
 This file is the shared ground for everyone on the team and for the AI tools we use. Upload it
 (as part of your `context_<name>.md` bundle) before asking an AI for code, so its answers fit
@@ -64,8 +64,10 @@ extra teeth 51 vs 154, numbering accuracy unchanged (94.3% vs 94.4%), but unsupp
 6.0% -> 7.1% (+1.0 points, paired CI excludes 0). The gain is mostly duplicate-box removal.
 Diagnosis detector (task 2.6): yolo11s, 100 epochs, plain images (CLAHE: no clear F1 gain on val and 10.5 points
 more unsupported claims). DENTEX findings test: mean F1 43.7% (95% CI 38.7% to 48.8%); seeds 42, 1, 2 mean 46.1%
-(SD 4.6 points). Impacted ~85% F1; caries ~40%; periapical lesion weak (only 25 in test). Details:
-`experiments/shubh/FINDINGS.md`.
+(SD 4.6 points). Impacted ~85% F1; caries ~40%; periapical lesion weak (only 25 in test). Outside test on
+OralXrays-9 (2,688 images, caries + periapical lesion): mean F1 2.9% matched by IoU, 25.9% (CI 24.2% to 27.5%)
+matched by cover, so the detector barely transfers. Details: `experiments/shubh/FINDINGS.md`.
+Baby teeth (task 2.9): `fdi.py` matches a hand-typed chart for all 20 primary teeth (`tests/test_fdi_chart_primary.py`).
 
 ## 2. Team
 
@@ -106,8 +108,10 @@ Task numbers (like 1.11) refer to the team plan and tracker.
   impacted, caries, deep_caries, periapical_lesion; 70/15/15 split of the 705 labelled images, test = 106
   held-out images; extra split `test_official` = the released official test images, whose labels use a
   different scheme, so score it only with `--merge-caries`; see `docs/datasets/dentex_findings.md`).
-  **Zhou et al. 2024** dual-labelled set (Kaggle; FDI numbers + tooth states: filling, root canal,
-  crown, caries, residual root) and **OralXrays-9** (CVPR 2025, the authors' own release;
+  **Zhou et al. 2024** dual-labelled set (Kaggle copy, 500 images, used as is; FDI numbers + tooth states;
+  `zhou_yolo_v1.zip` from `scripts/zhou_to_yolo.py`: `teeth/` (32 FDI classes) and `findings/` (filling,
+  root_canal_filling, crown, caries, residual_root), same 350/75/75 split; boxes are whole teeth, as in DENTEX;
+  card `docs/datasets/zhou.md`) and **OralXrays-9** (CVPR 2025, the authors' own release;
   `oralxrays_yolo_v1.zip`: 7 of its 9 classes mapped onto ours, test = their 2,688-image val2017 split,
   outside test for findings, treatments and implants for 2.7; card `docs/datasets/oralxrays.md`).
   OralXrays-9 boxes the lesion itself, not the whole tooth: score it with `--match iou` (default) AND
